@@ -14,6 +14,11 @@ import json
 import folium
 import seaborn as sns
 
+def load_trimet_boundary_from_s3():
+    '''
+    future function to load boundary from s3 so we can run this as a github action 
+    '''
+    pass
 
 def random_points_within(poly, num_points):
     min_x, min_y, max_x, max_y = poly.bounds
@@ -21,7 +26,7 @@ def random_points_within(poly, num_points):
     points = []
 
     while len(points) < num_points:
-        random_point = Point([random.uniform(min_x, max_x), random.uniform(min_y, max_y)])
+        random_point = Point((random.uniform(min_x, max_x), random.uniform(min_y, max_y)))
         if (random_point.within(poly)):
             points.append(random_point)
 
@@ -41,11 +46,12 @@ def generate_points_within_tm_boundary(tm_boundary, trimet_crs):
         points_list = random_points_within(tm_boundary_proj.unary_union, 2)
         dist_btw_points = LineString(points_list).length/5280
 
-    df = pd.DataFrame()
-    df['points'] = points_list
-    df['points'] = df['points'].apply(Point)
+    df = pd.DataFrame(zip(points_list,['origin', 'destination']), columns=['points','point_type'])
     gdf_points = gpd.GeoDataFrame(df,crs=trimet_crs ,geometry='points')
+    
     gdf_points_reproject = gdf_points.to_crs("EPSG:4326")
+
+    gdf_points_reproject['points_str'] = gdf_points_reproject['points'].apply(lambda x: f"{round(x.y,6)}, {round(x.x,6)}")
 
     return (gdf_points_reproject, dist_btw_points)
 
@@ -102,3 +108,35 @@ def get_itinerary_paths(planner_response):
                                    'legGeometry'])
             itineraries_df = pd.concat([itineraries_df,leg_df])
     return itineraries_df
+
+def create_intinerary_gdf_and_reduce(itineraries_df):
+    ''' '''
+    itineraries_gdf = gpd.GeoDataFrame(itineraries_df, crs="4326", geometry="legGeometry")
+
+    unique_combinations = itineraries_df[itineraries_df['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
+    unique_combinations['route_id_combo'] = unique_combinations['route_id_list'].apply(lambda x: " to ".join(x))
+
+    itineraries_reduced = itineraries_gdf.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
+
+    # itineraries_centroid = itineraries_reduced.unary_union.convex_hull.centroid
+
+    itinerary_routes_reduced = itineraries_reduced[itineraries_reduced['route_id']!='WALK'].drop_duplicates(subset='route_id').copy()
+
+    return (itineraries_reduced, itinerary_routes_reduced)
+
+def generate_random_points_make_itinerary(tm_boundary, trimet_crs):
+    ''' 
+    function to make sure the itinerary has a path
+    '''
+    error_length = 5
+    tries = 1
+    while error_length > 0:
+        gdf_points, dist_btw_points = generate_points_within_tm_boundary(tm_boundary, trimet_crs)
+        fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
+        toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
+        json_content = call_planner(fromplace, toplace)
+        error_length = len(json_content.get('error',''))
+        tries += 1
+    itineraries_df = get_itinerary_paths(json_content)
+    itineraries_reduced, itinerary_routes_reduced = create_intinerary_gdf_and_reduce(itineraries_df)
+    return (gdf_points, itineraries_reduced, itinerary_routes_reduced, tries)
