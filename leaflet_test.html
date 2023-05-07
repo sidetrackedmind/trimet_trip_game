@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Bus Route Selector</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+ <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+
+
+<style>
+   
+
+#map { position: absolute; top: 0; bottom: 0; width: 100% ;z-index: 1; }
+	
+#search_drop_down {
+		  position: absolute;
+          background-color:ghostwhite;
+          opacity: 0.85;
+		  left: 40%;
+          top: 5%;
+          z-index: 2;   
+		}
+
+       
+</style>
+
+</head>
+<body>
+<div id="search_drop_down">
+    <label for="selected_route_dropdown" style="font-size:20px;">Guess a route:</label>
+    <datalist class="legend" id="selected_route_dropdown" name="routes">
+    </datalist>
+    <input  autoComplete="on" list="selected_route_dropdown"/> 
+</div> 
+
+<div id="map"></div>
+
+ 
+ 
+<script>
+
+
+async function fetchAsync() {
+    // await response of fetch call
+    let response = await fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/gtfs_routes.json");
+    // only proceed once promise is resolved
+    let data = await response.json();
+    // only proceed once second promise is resolved
+    return data;
+}
+
+var dd_select = document.getElementById("selected_route_dropdown");
+
+// trigger async function
+fetchAsync()
+    // log response or catch error of fetch promise
+    .then((data) => {
+        for(var i = 0; i < data.length; i++) {
+        var opt = data[i];
+        var el = document.createElement("option");
+        el.textContent = opt.route_id + " - " + opt.route_long_name;
+        el.value = opt.route_id + " - " + opt.route_long_name;
+        dd_select.appendChild(el);
+        }
+    }
+     )
+    .catch((reason) => console.log("Message:" + reason.message));
+
+
+var map = L.map('map').setView([51.505, -0.09], 13);
+
+L.tileLayer('https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="http://stamen.com">Stamen Design</a> | <a href="https://developer.trimet.org/gis/">TriMet</a>'
+}).addTo(map);
+
+// stamen-tiles-a.a.ssl.fastly.net/toner-lite
+
+</script>
+ 
+</body>
+</html>

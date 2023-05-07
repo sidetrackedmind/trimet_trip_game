@@ -1,0 +1,12 @@
+## Plan
+- [x] Get route numbers and names from route.txt GTFS file
+- [x] Create searchable dropdown
+- [ ] Create 3 route lists (available, wrong guesses, correct guesses)
+- [ ] Pick 2 random "correct routes" and get wrong guesses to show up and correct guesses to show up. 
+- [ ] Send itinerary geojson to S3
+- [ ] Get itinerary geojson to show up on map
+- [ ] Isolate routes within itineraries into a featuregroup
+- [ ] Isolate individual itineraries into a featuregroup
+- [ ] If correct route is selected, show route (no matter the itinerary) on the map 
+- [ ] If incorrect route is selected, add to bad guesses
+- [ ] If all routes in an itinerary are selected, reveal itinerary and congratulations messages

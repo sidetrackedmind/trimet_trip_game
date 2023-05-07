@@ -99,8 +99,8 @@ li:hover {
 	<h1>Bus Route Selector</h1>
 	<p>Data Derived From <a href='https://developer.trimet.org/gis/' target='blank'>TriMet</a></p>
 	<div class='session'>
-		<h4>selected routes</h4>
-		<ul class='legend' id='selected_route_list'></ul>
+		<h4>select a route</h4>
+		<select class='legend' id='selected_route_dropdown' name='routes'></select>
 	</div>
 </div>
  
@@ -147,6 +147,14 @@ function StopOpacityBy(route_array) {
 						)
 }
 
+function route_dd_change() {
+    var dd_route_selected = document.getElementById("selected_route_dropdown").value 
+	var select_shape_array = dd_route_selected.map(i => i.properties.rte_dir)
+	LineOpacityBy(select_shape_array);
+	StopOpacityBy(select_shape_array);
+
+}
+
 
 map.on('load', function() {
 
@@ -190,66 +198,77 @@ map.addLayer({
 }
   });
 
+  // initial load of routes into dropdown
+  let initial_route_layer = map.getLayer('all_route_lines')
+  var all_route_array_properties = initial_route_layer.map(i => i.properties)
+  var Obj_dd = document.getElementById('selected_route_dropdown');
+	var inner_dd_list = all_route_array_properties.map(function(work) {
+						return `<option value=${work.rte_dir}>${work.rte} - ${work.dir_desc}</option>`
+							}).join('')
+	var new_dd_str = "<select class='legend' id='selected_route_dropdown' name='routes' onchange='route_dd_change()'>"+inner_dd_list+"</select>"
+	Obj_dd.outerHTML=new_dd_str;
 
 map.on('click', function(e) {
 	let f = map.queryRenderedFeatures(e.point, { layers: ['route_lines']});
 	if (f.length) {
 		console.log("you clicked at least one layer!");
-		var array_length = f.length;
-		var select_route_array_properties = f.map(i => i.properties)
-		console.log(select_route_array_properties)
-		var select_shape_array = f.map(i => i.properties.rte_dir)
-		var Obj = document.getElementById('selected_route_list');
-		var inner_list = select_route_array_properties.map(function(work) {
-          					return `<li id=${work.rte_dir}>${work.rte} - ${work.dir_desc}</li>`
-        						}).join('')
-		var new_str = "<ul class='legend' id='selected_route_list'>"+inner_list+"</ul>"
-		Obj.outerHTML=new_str;
-		console.log(new_str)
-		console.log(select_shape_array)
-		LineOpacityBy(select_shape_array);
-		StopOpacityBy(select_shape_array);
-		document.getElementById("selected_route_list").addEventListener("click",function(e) {
+		// var array_length = f.length;
+		// var select_route_array_properties = f.map(i => i.properties)
+		// console.log(select_route_array_properties)
+		// var select_shape_array = f.map(i => i.properties.rte_dir)
+		
+		// var Obj_dd = document.getElementById('selected_route_dropdown');
+		// var inner_dd_list = select_route_array_properties.map(function(work) {
+        //   					return `<option value=${work.rte_dir}>${work.rte} - ${work.dir_desc}</option>`
+        // 						}).join('')
+		// var new_dd_str = "<select class='legend' id='selected_route_dropdown' name='routes'>"+inner_dd_list+"</select>"
+		// Obj_dd.outerHTML=new_dd_str;
+
+		// console.log(new_dd_str)
+		// console.log(select_shape_array)
+		// LineOpacityBy(select_shape_array);
+		// StopOpacityBy(select_shape_array);
+		// document.getElementById("selected_route_dropdown").addEventListener("click",function(e) {
         // e.target is our targetted element.
                     // try doing console.log(e.target.nodeName), it will result LI
-        if(e.target && e.target.nodeName == "LI") {
-			clicked_route = e.target.id
-            console.log(clicked_route + " was clicked");
-			clicked_route_single = Array(clicked_route)
-			console.log(clicked_route_single)
-			LineOpacityBy(clicked_route_single);
-			StopOpacityBy(clicked_route_single);
+        // if(e.target && e.target.nodeName == "LI") {
+		// 	clicked_route = e.target.id
+        //     console.log(clicked_route + " was clicked");
+		// 	clicked_route_single = Array(clicked_route)
+		// 	console.log(clicked_route_single)
+		// 	LineOpacityBy(clicked_route_single);
+		// 	StopOpacityBy(clicked_route_single);
 
-        }
-    });
+        // }
+    // });
 	}
 	else {
 		console.log("you didn't click a layer!");
-		map.setPaintProperty('route_lines', 
-						'line-opacity',1);
-		map.setPaintProperty('all_stop_points', 
-						'circle-opacity',0.01)
-		var Obj = document.getElementById('selected_route_list');
+		// map.setPaintProperty('route_lines', 
+		// 				'line-opacity',1);
+		// map.setPaintProperty('all_stop_points', 
+		// 				'circle-opacity',0.01)
+		// var Obj = document.getElementById('selected_route_list');
 		
-		var new_str = "<ul class='legend' id='selected_route_list'></ul>"
-		Obj.outerHTML=new_str;
+		// var new_str = "<ul class='legend' id='selected_route_list'></ul>"
+		// Obj.outerHTML=new_str;
 	}
 
 }
 );
 
 map.on('click', function(e) {
-	let f = map.queryRenderedFeatures(e.point, { layers: ['all_stop_points']});
-	if (f.length) {
-		var select_stop_array_properties = f.map(i => i.properties)
-		var pop_up_str = select_stop_array_properties.map(function(work) {
-          					return `<p id=${work.stop_id}>${work.stop_name}</p>`
-        						}).join('')
-		console.log(pop_up_str)
-    }
-	else {
-		console.log("you did not click on a stop")
-	}
+	// let f = map.queryRenderedFeatures(e.point, { layers: ['all_stop_points']});
+	// if (f.length) {
+	// 	var select_stop_array_properties = f.map(i => i.properties)
+	// 	var pop_up_str = select_stop_array_properties.map(function(work) {
+    //       					return `<p id=${work.stop_id}>${work.stop_name}</p>`
+    //     						}).join('')
+	// 	console.log(pop_up_str)
+    // }
+	// else {
+	// 	console.log("you did not click on a stop")
+	// }
 
 }
 );
