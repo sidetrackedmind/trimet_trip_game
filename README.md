@@ -3,8 +3,8 @@
 - [x] Create searchable dropdown
 - [ ] Create 3 route lists (available, wrong guesses, correct guesses)
 - [ ] Pick 2 random "correct routes" and get wrong guesses to show up and correct guesses to show up. 
-- [ ] Send itinerary geojson to S3
-- [ ] Send origin+destination geojson to S3
+- [X] Send itinerary geojson to S3
+- [X] Send origin+destination geojson to S3
 - [ ] Get origin+destination geojson to show up on map
 - [ ] Get itinerary geojson to show up on map
 - [ ] Isolate routes within itineraries into a featuregroup
