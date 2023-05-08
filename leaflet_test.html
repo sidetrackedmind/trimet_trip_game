@@ -13,6 +13,8 @@
      crossorigin=""></script>
 
 <style>
+
+#winning_panel { position: relative; display: flex; background-color: white; z-index: 5; justify-content: center; width: 25%; margin: 20px auto;}
    
 
 #map { position: absolute; top: 0; bottom: 0; width: 100% ;z-index: 1; }
@@ -57,6 +59,8 @@
         <input list="selected_route_dropdown" onChange="get_dropdown_data(this.value)"/> 
     </div>
 </div>
+<div id="winning_panel">
+</div>
 
 <div class="box">
     <div class="route_boxes" id="good_guesses_box">
@@ -90,16 +94,42 @@ xhReq.open("GET", "https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/
 xhReq.send(null);
 var centroid_geojson = JSON.parse(xhReq.responseText);
 
+var xhReq = new XMLHttpRequest();
+xhReq.open("GET", "https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson", false);
+xhReq.send(null);
+var itineraries_reduced_geojson = JSON.parse(xhReq.responseText);
+
+var itinerary_dict = {};
+for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
+    var one_row = itineraries_reduced_geojson['features'][i];
+    // console.log(one_row);
+    var itinerary_idx = one_row['properties']['itin_idx'];
+    if (one_row['properties']['route_id']!='WALK') { 
+        if (!(itinerary_idx in itinerary_dict)) {
+            itinerary_dict[itinerary_idx] = [one_row['properties']['dropdown_route']]
+        }
+        else {
+            itinerary_dict[itinerary_idx].push(one_row['properties']['dropdown_route'])
+        }
+    }
+    else {
+        // pass 'WALK' routes
+    }
+}
+
+// console.log(itinerary_dict);
+
+
 
 var good_routes = [];
 for (var i = 0; i < itin_routes_long_name['features'].length; i++) {
         var one_route = itin_routes_long_name['features'][i];
-        console.log(one_route);
+        // console.log(one_route);
         var good_route_dd_name = one_route['properties'].dropdown_route;
         good_routes.push(good_route_dd_name)
         }
 
-// console.log(good_routes);
+console.log(good_routes);
 
 
 var dd_select = document.getElementById("selected_route_dropdown");
@@ -128,6 +158,20 @@ function get_dropdown_data(val){
     para_item.textContent = val;
     good_guesses.appendChild(para_item);
     selected_good_routes.push(val)
+    //loop through the itineraries and see if the selected good routes have ALL the routes
+    //if so - you WIN!
+    for (const [key, value] of Object.entries(itinerary_dict)) {
+    //   console.log(key, value);   
+          if (value.every(r=> selected_good_routes.includes(r))) {
+            var win_panel = document.getElementById("winning_panel");
+            var header_item = document.createElement("h2");
+            header_item.textContent = "You WIN!";
+            win_panel.appendChild(header_item);
+            console.log('you win! with routes: '+value);
+            // console.log(value);
+        }
+        else {}
+}
     fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itinerary_routes_long_name.geojson")
     .then(function (response){
         return response.json();

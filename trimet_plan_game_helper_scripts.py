@@ -113,8 +113,14 @@ def create_intinerary_gdf_and_reduce(itineraries_df):
     ''' '''
     itineraries_gdf = gpd.GeoDataFrame(itineraries_df, crs="4326", geometry="legGeometry")
 
+    itineraries_gdf['route_length_deg'] = itineraries_gdf['legGeometry'].apply(lambda x: x.length)
+
+    #TODO - add rank for length in case one itineraries route is longer than the other
+    # with the same route. not crucial but nice 
     unique_combinations = itineraries_df[itineraries_df['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
     unique_combinations['route_id_combo'] = unique_combinations['route_id_list'].apply(lambda x: " to ".join(x))
+
+
 
     itineraries_reduced = itineraries_gdf.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
 
