@@ -164,9 +164,12 @@ function get_dropdown_data(val){
     //   console.log(key, value);   
           if (value.every(r=> selected_good_routes.includes(r))) {
             var win_panel = document.getElementById("winning_panel");
-            var header_item = document.createElement("h2");
-            header_item.textContent = "You WIN!";
-            win_panel.appendChild(header_item);
+            var header2_item = document.createElement("h2");
+            var p_item = document.createElement("p");
+            header2_item.textContent = "You WIN!";
+            p_item.textContent = value;
+            win_panel.appendChild(header2_item);
+            win_panel.appendChild(p_item);
             console.log('you win! with routes: '+value);
             // console.log(value);
         }
