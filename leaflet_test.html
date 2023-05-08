@@ -117,7 +117,7 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     }
 }
 
-// console.log(itinerary_dict);
+console.log(itinerary_dict);
 
 
 
@@ -172,7 +172,7 @@ function get_dropdown_data(val){
         }
         else {}
 }
-    fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itinerary_routes_long_name.geojson")
+    fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
     .then(function (response){
         return response.json();
     })
