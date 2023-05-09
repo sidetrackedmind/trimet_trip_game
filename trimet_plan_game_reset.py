@@ -1,22 +1,21 @@
 import os
-os.environ['USE_PYGEOS'] = '0'
 import requests
 import pandas as pd
 import geopandas as gpd
 import datetime
-from shapely import wkt, wkb
 import polyline
 from shapely.geometry import LineString, Point
 import boto3
-import numpy as np
 import random
-import json
-import folium
 import seaborn as sns
+
+aws_access_key = os.environ['aws_access_key']
+aws_secret_key = os.environ['aws_secret_key']
 
 def load_trimet_boundary_from_s3():
     '''
     future function to load boundary from s3 so we can run this as a github action 
+    NOTE: we may not need to load from s3 because we can load from the github repo..
     '''
     pass
 
@@ -113,18 +112,10 @@ def create_intinerary_gdf_and_reduce(itineraries_df):
     ''' '''
     itineraries_gdf = gpd.GeoDataFrame(itineraries_df, crs="4326", geometry="legGeometry")
 
-    itineraries_gdf['route_length_deg'] = itineraries_gdf['legGeometry'].apply(lambda x: x.length)
-
-    #TODO - add rank for length in case one itineraries route is longer than the other
-    # with the same route. not crucial but nice 
     unique_combinations = itineraries_df[itineraries_df['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
     unique_combinations['route_id_combo'] = unique_combinations['route_id_list'].apply(lambda x: " to ".join(x))
 
-
-
     itineraries_reduced = itineraries_gdf.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
-
-    # itineraries_centroid = itineraries_reduced.unary_union.convex_hull.centroid
 
     itinerary_routes_reduced = itineraries_reduced[itineraries_reduced['route_id']!='WALK'].drop_duplicates(subset='route_id').copy()
 
@@ -146,3 +137,74 @@ def generate_random_points_make_itinerary(tm_boundary, trimet_crs):
     itineraries_df = get_itinerary_paths(json_content)
     itineraries_reduced, itinerary_routes_reduced = create_intinerary_gdf_and_reduce(itineraries_df)
     return (gdf_points, itineraries_reduced, itinerary_routes_reduced, tries)
+
+def set_up_itineraries_for_site(itinerary_routes_reduced, itineraries_reduced):
+    ''' add fields to itinerary_routes_reduced to provide properties for the site'''
+    itinerary_routes_reduced['route_id'] = itinerary_routes_reduced['route_id'].astype(int)
+    gtfs_routes = pd.read_csv("routes.txt")
+    itinerary_routes_long_name = itinerary_routes_reduced.merge(gtfs_routes[['route_id','route_long_name']], how='inner', on='route_id')
+    # Get Unique continents
+    color_labels = itinerary_routes_long_name['route_id'].unique()
+    # List of colors in the color palettes
+    hex_values = sns.color_palette("Set2", len(color_labels)).as_hex()
+    # Map continents to the colors
+    color_map = dict(zip(color_labels, hex_values))
+    color_map['WALK'] = '#bf5f58'
+
+    color_map_str = {str(item[0]):item[1] for item in color_map.items()}
+
+    itinerary_routes_long_name['route_color'] = itinerary_routes_long_name['route_id'].apply(lambda x: color_map[x])
+    itinerary_routes_long_name['dropdown_route'] = itinerary_routes_long_name.apply(lambda x: str(x['route_id'])+" - "+str(x['route_long_name']), axis=1)
+    itineraries_reduced_with_long_name = itineraries_reduced.merge(gtfs_routes[['route_id','route_long_name']].astype(str), how='left', on='route_id')
+
+    itineraries_reduced_with_long_name['route_long_name'] = itineraries_reduced_with_long_name['route_long_name'].fillna(value='WALK')
+
+    itineraries_reduced_with_long_name['dropdown_route'] = itineraries_reduced_with_long_name.apply(lambda x: str(x['route_id'])+" - "+str(x['route_long_name']), axis=1)
+
+    itineraries_reduced_with_long_name['route_color'] = itineraries_reduced_with_long_name['route_id'].apply(lambda x: color_map_str[x])
+
+    return (itinerary_routes_long_name, itineraries_reduced_with_long_name)
+
+
+if __name__ == "__main__":
+    tm_boundary = gpd.read_file("tm_route_buffer_bounds.geojson")
+    trimet_crs = "EPSG:2913"
+    gdf_points, itineraries_reduced, itinerary_routes_reduced, tries = generate_random_points_make_itinerary(tm_boundary, trimet_crs)
+    
+    origin_destination_centriod = LineString(list(gdf_points['points'].to_numpy())).centroid
+
+    origin_destination_centriod_gdf = gpd.GeoDataFrame(pd.DataFrame(['origin_dest_centroid'], columns=['id']),crs="EPSG:4326", geometry=[origin_destination_centriod])
+
+    itinerary_routes_long_name, itineraries_reduced_with_long_name = set_up_itineraries_for_site(itinerary_routes_reduced, itineraries_reduced)
+
+    gdf_points.to_file("origin_destination_points.geojson", driver="GeoJSON")
+    client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_access_key,
+                        aws_secret_access_key=aws_secret_key
+                    )
+    client.upload_file("origin_destination_points.geojson", "meysohn-sandbox", "trimet_trip_planner/origin_destination_points.geojson",ExtraArgs={'ACL':'public-read'})
+
+    itineraries_reduced_with_long_name.to_file("itineraries_reduced_with_long_name.geojson", driver="GeoJSON")
+    client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_access_key,
+                        aws_secret_access_key=aws_secret_key
+                    )
+    client.upload_file("itineraries_reduced_with_long_name.geojson", "meysohn-sandbox", "trimet_trip_planner/itineraries_reduced_with_long_name.geojson",ExtraArgs={'ACL':'public-read'})
+
+    itinerary_routes_long_name.to_file("itinerary_routes_long_name.geojson", driver="GeoJSON")
+    client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_access_key,
+                        aws_secret_access_key=aws_secret_key
+                    )
+    client.upload_file("itinerary_routes_long_name.geojson", "meysohn-sandbox", "trimet_trip_planner/itinerary_routes_long_name.geojson",ExtraArgs={'ACL':'public-read'})
+
+    origin_destination_centriod_gdf.to_file("origin_destination_centriod.geojson", driver="GeoJSON")
+    client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_access_key,
+                        aws_secret_access_key=aws_secret_key
+                    )
+    client.upload_file("origin_destination_centriod.geojson", "meysohn-sandbox", "trimet_trip_planner/origin_destination_centriod.geojson",ExtraArgs={'ACL':'public-read'})

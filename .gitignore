@@ -1,3 +1,4 @@
 gis/*
 .DS_Store
 gtfs/*
+.env
