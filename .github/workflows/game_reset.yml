@@ -1,8 +1,6 @@
 name: run game_reset.py
 
-on:
-  schedule:
-    - cron: '10 5 * * *' # At 5:10 everyday
+on: workflow_dispatch
 
 jobs:
   build:
