@@ -11,10 +11,9 @@
  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
      crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.0/leaflet.textpath.min.js"></script>
 
 <style>
-
-#winning_panel { position: relative; display: flex; background-color: white; z-index: 5; justify-content: center; width: 25%; margin: 20px auto;}
    
 
 #map { position: absolute; top: 0; bottom: 0; width: 100% ;z-index: 1; }
@@ -32,21 +31,18 @@
     background-color:ghostwhite;
 }
 
+#bad_guesses {
 
-.box {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    margin: 20px auto;
-    top: 10%;
-    width: 75%;
-    height: 10%;
-    z-index: 3;
-    }
-    .route_boxes {
-    background-color: whitesmoke;
-    z-index: 3;
-    }
+    position: absolute;
+        top: 0px;
+        right: 0px;
+        margin-top: 10px auto;
+        margin-right: 10px auto;
+        z-index: 3;
+        color: red;
+}
+
+
 </style>
 
 </head>
@@ -59,22 +55,8 @@
         <input list="selected_route_dropdown" onChange="get_dropdown_data(this.value)"/> 
     </div>
 </div>
-<div id="winning_panel">
-</div>
 
-<div class="box">
-    <div class="route_boxes" id="good_guesses_box">
-        <h3>Good Guesses</h3>
-        <p id="good_guesses_list">
-
-        </p>
-    </div>
-    <div class="route_boxes" id="bad_guesses_box">
-        <h3>Bad Guesses</h3>
-        <p id="bad_guesses_list">
-
-        </p>
-    </div>
+<div id="bad_guesses">
   </div>
 
 <div id="map"></div> 
@@ -153,25 +135,18 @@ var selected_good_routes = [];
 function get_dropdown_data(val){
     if (good_routes.includes(val)) {
   //  block of code to be executed if the condition is true
-  var good_guesses = document.getElementById("good_guesses_list");
-    var para_item = document.createElement("p");
-    para_item.textContent = val;
-    good_guesses.appendChild(para_item);
     selected_good_routes.push(val)
     //loop through the itineraries and see if the selected good routes have ALL the routes
     //if so - you WIN!
     for (const [key, value] of Object.entries(itinerary_dict)) {
     //   console.log(key, value);   
           if (value.every(r=> selected_good_routes.includes(r))) {
-            var win_panel = document.getElementById("winning_panel");
-            var header2_item = document.createElement("h2");
-            var p_item = document.createElement("p");
-            header2_item.textContent = "You WIN!";
-            p_item.textContent = value;
-            win_panel.appendChild(header2_item);
-            win_panel.appendChild(p_item);
+            var search_drop_down = document.getElementById("search_drop_down");
+            var new_dd_str = "<h2> You WIN!</h2><p>"+
+                                value+
+                                "</p>"
+		    search_drop_down.outerHTML=new_dd_str;
             console.log('you win! with routes: '+value);
-            // console.log(value);
         }
         else {}
 }
@@ -186,11 +161,11 @@ function get_dropdown_data(val){
                 if (feature.properties.dropdown_route === val) return true
             },
         style: styleRouteLines
-    }).addTo(map);
+    }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
     });
 } else {
   //  block of code to be executed if the condition is false
-  var bad_guesses = document.getElementById("bad_guesses_list");
+  var bad_guesses = document.getElementById("bad_guesses");
     var para_item = document.createElement("p");
     para_item.textContent = val;
     bad_guesses.appendChild(para_item);
