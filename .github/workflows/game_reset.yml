@@ -24,7 +24,7 @@ jobs:
         env:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-        run: python trimet_trip_game.py
+        run: python trimet_plan_game_reset.py
         
       - name: commit files
         run: |
