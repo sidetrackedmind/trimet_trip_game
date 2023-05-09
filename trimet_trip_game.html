@@ -164,6 +164,19 @@ var selected_bad_routes = [];
 function get_dropdown_data(val){
     if (good_routes.includes(val)) {
   //  block of code to be executed if the condition is true
+  fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
+    .then(function (response){
+        return response.json();
+    })
+    .then(function (data) {
+        
+        L.geoJSON(data, {
+            filter: function goodRouteFilter(feature) {
+                if (feature.properties.dropdown_route === val) return true
+            },
+        style: styleRouteLines
+    }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
+    });
     selected_good_routes.push(val)
     //loop through the itineraries and see if the selected good routes have ALL the routes
     //if so - you WIN!
@@ -179,19 +192,7 @@ function get_dropdown_data(val){
         }
         else {}
 }
-    fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
-    .then(function (response){
-        return response.json();
-    })
-    .then(function (data) {
-        
-        L.geoJSON(data, {
-            filter: function goodRouteFilter(feature) {
-                if (feature.properties.dropdown_route === val) return true
-            },
-        style: styleRouteLines
-    }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
-    });
+    
 } else {
   //  block of code to be executed if the condition is false
   selected_bad_routes.push(val)
