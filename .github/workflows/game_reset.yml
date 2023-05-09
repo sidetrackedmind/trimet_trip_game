@@ -1,4 +1,4 @@
-name: run main.py
+name: run game_reset.py
 
 on:
   schedule:
@@ -24,6 +24,6 @@ jobs:
           
       - name: execute py script # run main.py
         env:
-          aws_access_key: ${{ secrets.aws_access_key }}
-          aws_secret_key: ${{ secrets.aws_secret_key }}
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
         run: python trimet_trip_game.py
