@@ -1,5 +1,4 @@
 import os
-os.environ['USE_PYGEOS'] = '0'
 import requests
 import pandas as pd
 import geopandas as gpd
@@ -9,9 +8,6 @@ from shapely.geometry import LineString, Point
 import boto3
 import random
 import seaborn as sns
-from dotenv import load_dotenv
-
-load_dotenv()  # take environment variables from .env.
 
 aws_access_key = os.environ['aws_access_key']
 aws_secret_key = os.environ['aws_secret_key']
