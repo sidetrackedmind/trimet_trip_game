@@ -97,9 +97,9 @@
 <div id="search_drop_down_container">
     <div id="search_drop_down">
         <label for="selected_route_dropdown" style="font-size:20px;">Guess a route:</label>
+        <input list="selected_route_dropdown" onfocus="this.value=''" onChange="get_dropdown_data(this.value)" placeholder = "Select a route"/> 
         <datalist class="legend" id="selected_route_dropdown" name="routes" placeholder="">
         </datalist>
-        <input list="selected_route_dropdown" onChange="get_dropdown_data(this.value)"/> 
     </div>
 </div>
 
