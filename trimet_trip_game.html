@@ -37,8 +37,8 @@
 #bad_guesses {
 
     position: absolute;
-        top: 0px;
-        left: 75px;
+        top: 5%;
+        left: 5%;
         margin-top: 10px auto;
         margin-left: 10px auto;
         z-index: 3;
@@ -53,9 +53,46 @@
         align-items: right;}
 
 
+/* alert to tell people when the game resets */
+
+.alert.info {background-color: #2196F3;}
+
+.alert {
+    position: absolute;
+    z-index: 5;
+  padding: 10px;
+  background-color: #f44336;
+  color: white;
+  opacity: 1;
+  transition: opacity 0.6s;
+  right: 20px;
+}
+
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.closebtn:hover {
+  color: black;
+} 
+
+
+
 </style>
 
 </head>
+<div class="alert info">
+    <span class="closebtn">&times;</span>  
+    The game refreshes 5:10, 12:10, and 17:10 PT daily.
+  </div>
+
 <body>
 <div id="search_drop_down_container">
     <div id="search_drop_down">
@@ -77,6 +114,17 @@
  
  
 <script>
+
+var close = document.getElementsByClassName("closebtn");
+var i;
+
+for (i = 0; i < close.length; i++) {
+  close[i].onclick = function(){
+    var div = this.parentElement;
+    div.style.opacity = "0";
+    setTimeout(function(){ div.style.display = "none"; }, 600);
+  }
+}
 
 // I know this is wrong but I want to get the json object into a reusable variable...
 var xhReq = new XMLHttpRequest();
