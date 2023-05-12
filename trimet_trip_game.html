@@ -261,18 +261,25 @@ var geojsonMarkerOptions = {
 
 
 // label from https://gis.stackexchange.com/questions/245621/how-to-label-geojson-points-in-leaflet
-fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/origin_destination_points.geojson")
-    .then(function (response){
-        return response.json();
-    })
-    .then(function (data) {
-        L.geoJSON(data, {
-        pointToLayer: function (feature, latlng) {
-            label = String(feature.properties.point_type) // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
-        return L.circleMarker(latlng, geojsonMarkerOptions).bindTooltip(label, {permanent: true, opacity: 0.7}).openTooltip();;
-        }
-    }).addTo(map);
+fetch(
+  "https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/origin_destination_points.geojson"
+)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    var od_layer = L.geoJSON(data, {
+      pointToLayer: function (feature, latlng) {
+        label = String(feature.properties.point_type); // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
+        return L.circleMarker(latlng, geojsonMarkerOptions)
+          .bindTooltip(label, { permanent: true, opacity: 0.7 })
+          .openTooltip();
+      },
     });
+    od_layer.addTo(map);
+    map.fitBounds(od_layer.getBounds());
+  });
+
 
 function styleRouteLines(feature) {
     return {
