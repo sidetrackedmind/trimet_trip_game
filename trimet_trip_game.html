@@ -17,7 +17,41 @@
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.0/leaflet.textpath.min.js"></script>
 
 <style>
-   
+
+.header-grid { grid-area: header; 
+    position: absolute;
+top: 1%;
+}
+
+.main-grid { grid-area: main; 
+    position: absolute;
+top: 12%;
+width: 100%;
+z-index: 2;
+height: 100%;
+}
+
+h1 {
+    margin-top: 0px;
+margin-bottom: 0px;
+font-size: 22px;
+text-align: center;
+}
+
+.instructions {
+    font-size: 15px;
+text-align: center;
+left: 12.5%;
+position: relative;
+width: 75%;
+}
+
+.top-info-bar {
+  z-index: 5;
+  position: relative;
+  width: 100%;
+  background-color: white;
+}
 
 #map { position: absolute; top: 0; bottom: 0; width: 100% ;z-index: 1; }
 	
@@ -88,9 +122,42 @@
 </style>
 
 </head>
-<div class="alert info">
-    <span class="closebtn">&times;</span>  
-    The game refreshes 5:10, 12:10, and 17:10 PT daily.
+
+    <div class="header-grid">
+        <h1 id="h1">Trimet Trip Game</h1>
+        <div class="instructions" id="instructions">
+            Test your TriMet knowledge. Use the search dropdown to select the route(s) that will get you from the origin point to the destination point. 
+            When you guess correctly the route will show up on the map.
+        </div>
+    </div>
+    <div class="main-grid">
+    <div id="top-info-bar">
+
+
+    </div>
+    <div class="alert info">
+        <span class="closebtn">&times;</span>  
+        The game refreshes 5:10, 12:10, and 17:10 PT daily.
+      </div>
+    
+    <body>
+    <div id="search_drop_down_container">
+        <div id="search_drop_down">
+            <label for="selected_route_dropdown" style="font-size:20px;">Guess a route:</label>
+            <datalist class="legend" id="selected_route_dropdown" name="routes" placeholder="">
+            </datalist>
+            <input list="selected_route_dropdown" onChange="get_dropdown_data(this.value)"/> 
+        </div>
+    
+    </div>
+    
+    
+    <details>
+        <summary id="bad_guesses">Bad Guesses</summary>
+        <ul id="bad_guesses_list"></ul>
+    </details>
+    
+    <div id="map"></div> 
   </div>
 
 <body>
