@@ -18,13 +18,17 @@
 
 <style>
 
+.wrap_all {position: relative;}
+
 .header-grid { grid-area: header; 
-    position: absolute;
+    position: static;
 top: 1%;
+width: 100%;
+height: fit-content;
 }
 
 .main-grid { grid-area: main; 
-    position: absolute;
+    position: static;
 top: 12%;
 width: 100%;
 z-index: 2;
@@ -42,22 +46,21 @@ text-align: center;
     font-size: 15px;
 text-align: center;
 left: 12.5%;
-position: relative;
-width: 75%;
+position: static;
 }
 
 .top-info-bar {
   z-index: 5;
-  position: relative;
+  position: static;
   width: 100%;
   background-color: white;
 }
 
-#map { position: absolute; top: 0; bottom: 0; width: 100% ;z-index: 1; }
+#map { height: 80vh; }
 	
 #search_drop_down_container {
   overflow: hidden;
-  position: relative;
+  position: static;
   display: flex;
   justify-content: center; /*centers items on the line (the x-axis by default)*/
   align-items: center; /*centers items on the cross-axis (y by default)*/
@@ -68,31 +71,29 @@ width: 75%;
     background-color:ghostwhite;
 }
 
-#bad_guesses {
-
-    position: absolute;
-        top: 5%;
-        left: 5%;
-        margin-top: 10px auto;
-        margin-left: 10px auto;
+#bad_details {
+  position: static;
         z-index: 3;
+        text-align: center;
+}
+
+#bad_guesses {
         color: red;
-        align-items: right;
 }
 
 #bad_guesses_list {
-    position: absolute;
-        z-index: 3;
         color: red;
-        align-items: right;}
+        margin: 0%;
+      }
 
 
 /* alert to tell people when the game resets */
 
-.alert.info {background-color: #2196F3;}
+.alert.info {background-color: #2196F3;
+text-align: center;}
 
 .alert {
-    position: absolute;
+    position: static;
     z-index: 5;
   padding: 10px;
   background-color: #f44336;
@@ -123,6 +124,7 @@ width: 75%;
 
 </head>
 
+<div id="wrap_all"> 
     <div class="header-grid">
         <h1 id="h1">Trimet Trip Game</h1>
         <div class="instructions" id="instructions">
@@ -137,47 +139,29 @@ width: 75%;
     </div>
     <div class="alert info">
         <span class="closebtn">&times;</span>  
-        The game refreshes 5:10, 12:10, and 17:10 PT daily.
+        The game refreshes 5:10, 12:10, and 17:10 PDT daily.
       </div>
     
     <body>
     <div id="search_drop_down_container">
         <div id="search_drop_down">
             <label for="selected_route_dropdown" style="font-size:20px;">Guess a route:</label>
+            <input list="selected_route_dropdown" onfocus="this.value=''" onChange="get_dropdown_data(this.value)" placeholder = "Select a route"/>
             <datalist class="legend" id="selected_route_dropdown" name="routes" placeholder="">
             </datalist>
-            <input list="selected_route_dropdown" onChange="get_dropdown_data(this.value)"/> 
         </div>
     
     </div>
-    
-    
-    <details>
+    <details id="bad_details">
         <summary id="bad_guesses">Bad Guesses</summary>
-        <ul id="bad_guesses_list"></ul>
+        <p id="bad_guesses_list"></p>
     </details>
-    
     <div id="map"></div> 
+    
   </div>
-
-<body>
-<div id="search_drop_down_container">
-    <div id="search_drop_down">
-        <label for="selected_route_dropdown" style="font-size:20px;">Guess a route:</label>
-        <input list="selected_route_dropdown" onfocus="this.value=''" onChange="get_dropdown_data(this.value)" placeholder = "Select a route"/> 
-        <datalist class="legend" id="selected_route_dropdown" name="routes" placeholder="">
-        </datalist>
-    </div>
 </div>
 
-
-<details>
-    <summary id="bad_guesses">Bad Guesses</summary>
-    <ul id="bad_guesses_list"></ul>
-</details>
-
-<div id="map"></div> 
-
+<body>
  
  
 <script>
