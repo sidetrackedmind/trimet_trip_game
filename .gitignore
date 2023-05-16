@@ -2,3 +2,5 @@ gis/*
 .DS_Store
 gtfs/*
 .env
+exploration_notebooks/gis/*
+exploration_notebooks/gtfs/*
