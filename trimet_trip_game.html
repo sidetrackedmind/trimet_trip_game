@@ -347,6 +347,7 @@ for (const [key, value] of Object.entries(itinerary_alt_dict)) {
   var itin_div = document.createElement("div");
   itin_div.setAttribute("class","flex-container");
   itin_div.setAttribute("id","itinerary"+key);
+  itin_div.dataset.total_routes = Object.keys(value).length;
   itinerary_container.appendChild(itin_div);
 
   // add routes to itinerary
@@ -415,26 +416,30 @@ function get_dropdown_data(val){
     }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
     });
     selected_good_routes.push(val)
-    //loop through the itineraries and see if the selected good routes have ALL the routes
-    //if so - you WIN!
-    for (const [key, value] of Object.entries(itinerary_dict)) {
-    //   console.log(key, value);   
-          if (value.every(r=> selected_good_routes.includes(r))) {
-            var search_drop_down = document.getElementById("search_drop_down");
-            var new_dd_str = "<h2> You WIN!</h2><p>"+
-                                value+
-                                "</p>"
-		    search_drop_down.outerHTML=new_dd_str;
-            console.log('you win! with routes: '+value);
-        }
-        else {}
-}
+
 //go through the alt itinerary dict and turn the circles blue
 for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
     for (const [route_key, route_value] of Object.entries(it_value)) {
         if (route_value == val) {
           correct_circle = document.getElementById(it_key+"_"+route_key);
           correct_circle.setAttribute("style", "background-color:#3171da;");
+          itin_div = document.getElementById("itinerary"+it_key);
+          if (!("running_total" in itin_div.dataset)) {
+            itin_div.dataset.running_total = 1;
+            }
+            else {
+              itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
+            }
+          
+          if (itin_div.dataset.total_routes == itin_div.dataset.running_total) {
+              console.log("turn blue!")
+              itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;");
+              var win_tooltip = document.createElement("span");
+              win_tooltip.setAttribute("class","tooltiptext");
+              win_tooltip.textContent = "You WIN";
+              itin_div.appendChild(win_tooltip);
+          }
+          else {}
         }
         else {}
 
