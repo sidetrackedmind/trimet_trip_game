@@ -126,7 +126,7 @@
 
 #bad_tooltiptext_id.bad_tooltiptext {
   position: absolute;
-
+  top: 32px;
 }
 .wrap_all {position: relative;}
 
@@ -178,6 +178,7 @@ text-align:center;
   align-content: center;
   align-items: center;
   column-gap: 1em;
+  position: relative;
 }
 
 .intin_routes {
@@ -357,10 +358,6 @@ for (const [key, value] of Object.entries(itinerary_alt_dict)) {
     var route_div_circle = document.createElement("div");
     route_div_circle.setAttribute("class","circle");
     route_div_circle.setAttribute("id",key+"_"+route_key);
-    var route_tooltip = document.createElement("span");
-    route_tooltip.setAttribute("class","tooltiptext");
-    route_tooltip.textContent = route_value;
-    route_div_circle.appendChild(route_tooltip);
     itin_div.appendChild(route_div_circle);
   }
 
@@ -421,16 +418,24 @@ function get_dropdown_data(val){
 for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
     for (const [route_key, route_value] of Object.entries(it_value)) {
         if (route_value == val) {
+          //color correct circle blue
           correct_circle = document.getElementById(it_key+"_"+route_key);
           correct_circle.setAttribute("style", "background-color:#3171da;");
+          //add route name to ciricle
+          var route_tooltip = document.createElement("span");
+          route_tooltip.setAttribute("class","tooltiptext");
+          route_tooltip.textContent = route_value;
+          correct_circle.appendChild(route_tooltip);
           itin_div = document.getElementById("itinerary"+it_key);
+
+          //add to the running total of correct routes in the itinerary
           if (!("running_total" in itin_div.dataset)) {
             itin_div.dataset.running_total = 1;
             }
             else {
               itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
             }
-          
+          //check if circle is last route in the itinerary
           if (itin_div.dataset.total_routes == itin_div.dataset.running_total) {
               console.log("turn blue!")
               itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;");
