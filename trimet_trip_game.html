@@ -321,18 +321,15 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     var one_row = itineraries_reduced_geojson['features'][i];
     // console.log(one_row);
     var itinerary_idx = one_row['properties']['itin_idx'];
+    var route_idx = one_row['properties']['leg_id'];
     if (one_row['properties']['route_id']!='WALK') { 
         if (!(itinerary_idx in itinerary_dict)) {
             var route_dict = {};
-            var route_idx = 1;
-            
             route_dict[route_idx] = one_row['properties']['dropdown_route']
             itinerary_dict[itinerary_idx] = [one_row['properties']['dropdown_route']]
             itinerary_alt_dict[itinerary_idx] = route_dict;
-
         }
         else {
-            route_idx += 1;
             route_dict[route_idx] = one_row['properties']['dropdown_route']
             itinerary_dict[itinerary_idx].push(one_row['properties']['dropdown_route'])
         }
@@ -345,7 +342,6 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
 console.log(itinerary_dict);
 console.log(itinerary_alt_dict);
 
-var itinerary_num = 1;
 for (const [key, value] of Object.entries(itinerary_alt_dict)) {
   var itinerary_container = document.getElementById("itin_contain");
   var itin_div = document.createElement("div");
@@ -359,6 +355,7 @@ for (const [key, value] of Object.entries(itinerary_alt_dict)) {
     // console.log(route_key);
     var route_div_circle = document.createElement("div");
     route_div_circle.setAttribute("class","circle");
+    route_div_circle.setAttribute("id",key+"_"+route_key);
     var route_tooltip = document.createElement("span");
     route_tooltip.setAttribute("class","tooltiptext");
     route_tooltip.textContent = route_value;
@@ -366,8 +363,6 @@ for (const [key, value] of Object.entries(itinerary_alt_dict)) {
     itin_div.appendChild(route_div_circle);
   }
 
-  // adjust itin number
-  itinerary_num += 1;
 };
 
 var good_routes = [];
@@ -434,6 +429,19 @@ function get_dropdown_data(val){
         }
         else {}
 }
+//go through the alt itinerary dict and turn the circles blue
+for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
+    for (const [route_key, route_value] of Object.entries(it_value)) {
+        if (route_value == val) {
+          correct_circle = document.getElementById(it_key+"_"+route_key);
+          correct_circle.setAttribute("style", "background-color:#3171da;");
+        }
+        else {}
+
+    }
+
+        }
+
     
 } else {
   //  block of code to be executed if the condition is false
