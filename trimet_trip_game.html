@@ -441,7 +441,7 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
           //check if circle is last route in the itinerary
           if (itin_div.dataset.total_routes == itin_div.dataset.running_total) {
               console.log("turn blue!")
-              itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;");
+              itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;padding-right:5px");
               var win_tooltip = document.createElement("span");
               win_tooltip.setAttribute("class","tooltiptext");
               win_tooltip.textContent = "You WIN";
