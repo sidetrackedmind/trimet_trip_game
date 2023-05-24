@@ -4,3 +4,4 @@ gtfs/*
 .env
 exploration_notebooks/gis/*
 exploration_notebooks/gtfs/*
+*.afdesign
