@@ -154,6 +154,20 @@ display: flex;
     justify-content: center;
     flex-direction: column;
   }
+ 
+  
+}
+
+@media (max-width:900px) {
+  #info-explainer {
+    width: 250px;
+  }
+}
+
+@media (min-width:900px) {
+#info-explainer {
+    width: 333px;
+  }
 }
 
 .h1 {
@@ -219,6 +233,7 @@ text-align:center;
       text-align: center;
       margin-left: 20%;
       margin-right: 20%;
+      justify-content: center;
   }
 
 
@@ -240,10 +255,10 @@ text-align:center;
     
     <div class="main-grid">
     <div id="popup-box" class="modal">
-      <h3 style="color: rgb(0, 0, 0);/*! margin-top: 40px; */margin-left: 30px;margin-right: 50px;">
+      <h3 style="color: rgb(0, 0, 0);padding:5%;">
         Use the dropdown and select route(s) to get from the origin to the destination. 
         <br><br>Track your progress with the dots on top:
-        <br><a href="#info-explainer"><img id="info-explainer" src="website explainer.jpg" alt="explainer" style="width:250px;height:152px;"></a>
+        <br><a href="#info-explainer"><img id="info-explainer" src="website_explainer.svg" alt="explainer" style=></a>
         <br>If routes overlap, try each one. There are up to 3 itineraries with a max walking distance of 0.5 miles.
         <br><br>The game refreshes 3 times a day... Enjoy!
       </h3>
