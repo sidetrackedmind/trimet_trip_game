@@ -8,6 +8,8 @@ from shapely.geometry import LineString, Point
 import boto3
 import random
 import seaborn as sns
+from dotenv import load_dotenv
+load_dotenv()
 
 aws_access_key = os.environ['aws_access_key']
 aws_secret_key = os.environ['aws_secret_key']
