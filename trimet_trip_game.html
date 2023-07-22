@@ -440,21 +440,27 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
           correct_circle = document.getElementById(it_key+"_"+route_key);
           correct_circle.setAttribute("style", "background-color:#3171da;");
           //add route name to ciricle
+          if ((correct_circle.children.length<1)) {
           var route_tooltip = document.createElement("span");
           route_tooltip.setAttribute("class","tooltiptext");
           route_tooltip.textContent = route_value;
           correct_circle.appendChild(route_tooltip);
+          }
+          else {}
           itin_div = document.getElementById("itinerary"+it_key);
 
           //add to the running total of correct routes in the itinerary
           if (!("running_total" in itin_div.dataset)) {
             itin_div.dataset.running_total = 1;
+            itin_div.dataset.route_list = val;
             }
-            else {
+            else if (!(itin_div.dataset.route_list.includes(val))) {
               itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
+              itin_div.dataset.route_list += ', ' + val;
             }
+            else {}
           //check if circle is last route in the itinerary
-          if (itin_div.dataset.total_routes == itin_div.dataset.running_total) {
+          if (itin_div.dataset.total_routes == itin_div.dataset.running_total && itin_div.dataset.running_total == itin_div.children.length) {
               console.log("turn blue!")
               itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;padding-right:5px");
               var win_tooltip = document.createElement("span");
