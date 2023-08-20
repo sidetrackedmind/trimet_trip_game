@@ -112,10 +112,13 @@ def create_intinerary_gdf_and_reduce(itineraries_df):
     ''' '''
     itineraries_gdf = gpd.GeoDataFrame(itineraries_df, crs="4326", geometry="legGeometry")
 
-    unique_combinations = itineraries_df[itineraries_df['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
+    #reduce "stay on" routes
+    itineraries_reduce_stayon_routes = itineraries_gdf.drop_duplicates(subset=['itin_idx','route_id'])
+
+    unique_combinations = itineraries_reduce_stayon_routes[itineraries_reduce_stayon_routes['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
     unique_combinations['route_id_combo'] = unique_combinations['route_id_list'].apply(lambda x: " to ".join(x))
 
-    itineraries_reduced = itineraries_gdf.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
+    itineraries_reduced = itineraries_reduce_stayon_routes.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
 
     itinerary_routes_reduced = itineraries_reduced[itineraries_reduced['route_id']!='WALK'].drop_duplicates(subset='route_id').copy()
 
