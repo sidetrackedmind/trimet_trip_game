@@ -8,7 +8,6 @@ The game has several elements described below:
 - **itineraries** - itineraries and "leg" geometries are provided by TriMet's trip planner.
 - **origin | destination** - origin and destination points are randomly generated points within 0.5 miles of a TriMet route shape.
 - **basemap** - [Stanem Design](http://stamen.com) basemap is used to remove a lot of detail and focus mainly on the origin and destination relative location.
-- blah test
 
 ## Creation Steps
 1. Download gtfs.zip file from TriMet. Something like this:
