@@ -66,7 +66,8 @@ def call_planner(fromPlace, toPlace):
     mode="WALK,BUS,TRAM,RAIL,GONDOLA"
     maxWalkDistance=5280/2
     walkSpeed=1.34
-    numItineraries=3
+    # update number of itineraries to > 3 but reduce to 3 later
+    numItineraries=6
     r = requests.get(url=base_url, params={'fromPlace':fromPlace, 'toPlace':toPlace, 'date':date, 'time':time
                                     ,'mode':mode, 'maxWalkDistance':maxWalkDistance, 'walkSpeed':walkSpeed
                                     ,'numItineraries':numItineraries})
@@ -122,8 +123,13 @@ def create_intinerary_gdf_and_reduce(itineraries_df):
     unique_combinations = itineraries_reduce_stayon_routes[itineraries_reduce_stayon_routes['route_id']!='WALK'].groupby('itin_idx').agg(route_id_list=('route_id',list)).reset_index().drop_duplicates(subset='route_id_list')
     unique_combinations['route_id_combo'] = unique_combinations['route_id_list'].apply(lambda x: " to ".join(x))
 
-    itineraries_reduced = itineraries_reduce_stayon_routes.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
+    itineraries_reduced_raw = itineraries_reduce_stayon_routes.merge(unique_combinations[['itin_idx','route_id_combo']], how='inner', on='itin_idx')
 
+    #reduce down to 3 itineraries based on shortest total duration
+    itineraries_reduced_selected = itineraries_reduced_raw.groupby('itin_idx').agg(totalTime=('totalTime','max')).reset_index().sort_values('totalTime').head(3)
+
+    itineraries_reduced = itineraries_reduced_raw.merge(itineraries_reduced_selected[['itin_idx']], how='inner', on='itin_idx')
+    
     itineraries_reduced.crs = "EPSG:4326"
 
     itinerary_routes_reduced = itineraries_reduced[itineraries_reduced['route_id']!='WALK'].drop_duplicates(subset='route_id').copy()
