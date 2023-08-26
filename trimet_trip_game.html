@@ -325,18 +325,6 @@ modal.close();
 );
 
 
-// for information window
-var close = document.getElementsByClassName("closebtn");
-var i;
-
-for (i = 0; i < close.length; i++) {
-  close[i].onclick = function(){
-    var div = this.parentElement;
-    div.style.opacity = "0";
-    setTimeout(function(){ div.style.display = "none"; }, 600);
-  }
-}
-
 // for itineraries
 var coll = document.getElementsByClassName("collapsible");
 var i;
@@ -372,11 +360,27 @@ var itineraries_reduced_geojson = JSON.parse(xhReq.responseText);
 // console.log(itineraries_reduced_geojson);
 
 var itinerary_dict = {};
+var itinerary_duration_dict = {};
 var itinerary_alt_dict = {};
 for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     var one_row = itineraries_reduced_geojson['features'][i];
     // console.log(one_row);
     var itinerary_idx = one_row['properties']['itin_idx'];
+    var totalSeconds = one_row['properties']['totalTime'];
+    console.log("totalSeconds: "+ totalSeconds);
+    let hours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = totalSeconds % 60;
+    // console.log("hours: " + hours);
+    // console.log("minutes: " + minutes);
+    // console.log("seconds: " + seconds);
+    // If you want strings with leading zeroes:
+    minutes = String(minutes).padStart(2, "0");
+    hours = String(hours).padStart(2, "0");
+    seconds = String(seconds).padStart(2, "0");
+    total_time_formatted = hours + ":" + minutes + ":" + seconds
+    itinerary_duration_dict[itinerary_idx] = total_time_formatted;
     var route_idx = one_row['properties']['leg_id'];
     if (one_row['properties']['route_id']!='WALK') { 
         if (!(itinerary_idx in itinerary_dict)) {
@@ -397,6 +401,7 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
 
 console.log(itinerary_dict);
 console.log(itinerary_alt_dict);
+console.log(itinerary_duration_dict);
 
 for (const [key, value] of Object.entries(itinerary_alt_dict)) {
   var itinerary_container = document.getElementById("itin_contain");
@@ -502,7 +507,8 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
               itin_div.setAttribute("style", "background-color:#83adf5;align-items:center;width:fit-content;padding-right:5px");
               var win_tooltip = document.createElement("span");
               win_tooltip.setAttribute("class","tooltiptext");
-              win_tooltip.textContent = "You WIN";
+              total_itinerary_duration = itinerary_duration_dict[it_key];
+              win_tooltip.textContent = "You WIN "+ total_itinerary_duration;
               itin_div.appendChild(win_tooltip);
           }
           else {}
