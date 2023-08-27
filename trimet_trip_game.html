@@ -367,10 +367,11 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     // console.log(one_row);
     var itinerary_idx = one_row['properties']['itin_idx'];
     var totalSeconds = one_row['properties']['totalTime'];
-    console.log("totalSeconds: "+ totalSeconds);
+    console.log(itinerary_idx+":"+"totalSeconds: "+ totalSeconds);
     let hours = Math.floor(totalSeconds / 3600);
     totalSeconds %= 3600;
     let minutes = Math.floor(totalSeconds / 60);
+    let totalMinutes = (hours*60)+minutes;
     let seconds = totalSeconds % 60;
     // console.log("hours: " + hours);
     // console.log("minutes: " + minutes);
@@ -379,7 +380,7 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     minutes = String(minutes).padStart(2, "0");
     hours = String(hours).padStart(2, "0");
     seconds = String(seconds).padStart(2, "0");
-    total_time_formatted = hours + ":" + minutes + ":" + seconds
+    total_time_formatted = totalMinutes + " mins"
     itinerary_duration_dict[itinerary_idx] = total_time_formatted;
     var route_idx = one_row['properties']['leg_id'];
     if (one_row['properties']['route_id']!='WALK') { 
@@ -508,7 +509,7 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
               var win_tooltip = document.createElement("span");
               win_tooltip.setAttribute("class","tooltiptext");
               total_itinerary_duration = itinerary_duration_dict[it_key];
-              win_tooltip.textContent = "You WIN "+ total_itinerary_duration;
+              win_tooltip.textContent = "You WIN! "+"trip time: "+ total_itinerary_duration;
               itin_div.appendChild(win_tooltip);
           }
           else {}

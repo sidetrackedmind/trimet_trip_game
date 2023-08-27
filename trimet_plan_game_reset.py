@@ -12,6 +12,7 @@ from shapely.ops import unary_union
 
 aws_access_key = os.getenv('aws_access_key','')
 aws_secret_key = os.getenv('aws_secret_key','')
+mapbox_api_key = os.getenv('mapbox_api_key','')
 
 def load_trimet_boundary_from_s3():
     '''
@@ -71,6 +72,27 @@ def call_planner(fromPlace, toPlace):
     r = requests.get(url=base_url, params={'fromPlace':fromPlace, 'toPlace':toPlace, 'date':date, 'time':time
                                     ,'mode':mode, 'maxWalkDistance':maxWalkDistance, 'walkSpeed':walkSpeed
                                     ,'numItineraries':numItineraries})
+    assert(r.status_code==200)
+    return r.json()
+
+def call_mapbox(fromPlace, toPlace):
+    ''' 
+    fromPlace = "lat, lon"
+    toPlace = "lat,lon"
+
+    mapbox takes lon, lat
+    '''
+    date = datetime.datetime.now().strftime("%Y-%m-%d")
+    base_url = "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/"
+    time="12:00"
+    depart_time=f"{date}T{time}"
+    from_lon = fromPlace.split(",")[-1]
+    from_lat = fromPlace.split(",")[0]
+    to_lon = toPlace.split(",")[-1]
+    to_lat = toPlace.split(",")[0]
+    base_url_w_origin_dest = f"{base_url}{from_lon},{from_lat};{to_lon},{to_lat}"
+    r = requests.get(url=base_url_w_origin_dest, params={'depart_at':depart_time
+                                    ,'access_token':mapbox_api_key})
     assert(r.status_code==200)
     return r.json()
 
