@@ -7,6 +7,7 @@ import polyline
 from shapely.geometry import LineString, Point
 import boto3
 import random
+import json
 import seaborn as sns
 from shapely.ops import unary_union
 
@@ -218,6 +219,9 @@ if __name__ == "__main__":
     trimet_crs = "EPSG:2913"
     gdf_points, itineraries_reduced, itinerary_routes_reduced, tries = generate_random_points_make_itinerary(tm_boundary, trimet_crs)
     
+    fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
+    toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
+
     origin_destination_centriod = LineString(list(gdf_points['points'].to_numpy())).centroid
 
     origin_destination_centriod_gdf = gpd.GeoDataFrame(pd.DataFrame(['origin_dest_centroid'], columns=['id']),crs="EPSG:4326", geometry=[origin_destination_centriod])
@@ -255,3 +259,15 @@ if __name__ == "__main__":
                         aws_secret_access_key=aws_secret_key
                     )
     client.upload_file("origin_destination_centriod.geojson", "meysohn-sandbox", "trimet_trip_planner/origin_destination_centriod.geojson",ExtraArgs={'ACL':'public-read'})
+
+    #add driving duration from mapbox api call
+    mapbox_response = call_mapbox(fromplace, toplace)
+
+    if len(mapbox_response['routes'])>0:
+        driving_route = mapbox_response['routes'][0]
+        with open("driving_route.json", "w") as f:
+            f.write(json.dumps(driving_route))
+    else:
+        #write something on the .html side to catch -9999 duration and say "driving duration unavailable"
+        with open("driving_route.json", "w") as f:
+            f.write("""{'duration_typical': -9999}""")
