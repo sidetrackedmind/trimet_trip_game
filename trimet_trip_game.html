@@ -71,6 +71,7 @@
 .mega-flex {
   display: flex;
   column-gap: 1em;
+  max-width: 620px;
 }
 
 
@@ -278,6 +279,7 @@ font-size: 1.5rem;
     </div>
     <body>
     <div id="button_container">
+      <div class="driving_duration"></div>
       <div class="bad_circle" id="bad_circle_id">
       </div>
       
@@ -324,6 +326,25 @@ modal.close();
 	false
 );
 
+// add driving duration
+var button_container_element = document.getElementById("button_container");
+
+fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/driving_route.json")
+    .then(function (response){
+        return response.json();
+    })
+    .then(function (data) {
+        // console.log(data['duration_typical'])
+        var driving_duration_div = document.createElement("div");
+        var totalDrivingSeconds = data['duration_typical'];
+        let drivinghours = Math.floor(totalDrivingSeconds / 3600);
+        totalDrivingSeconds %= 3600;
+        let drivingminutes = Math.floor(totalDrivingSeconds / 60);
+        let totalDrivingMinutes = (drivinghours*60)+drivingminutes;
+        driving_duration_div.textContent = "Driving time: "+totalDrivingMinutes+" mins"
+        button_container_element.appendChild(driving_duration_div);
+        }
+    );
 
 // for itineraries
 var coll = document.getElementsByClassName("collapsible");
@@ -509,7 +530,7 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
               var win_tooltip = document.createElement("span");
               win_tooltip.setAttribute("class","tooltiptext");
               total_itinerary_duration = itinerary_duration_dict[it_key];
-              win_tooltip.textContent = "You WIN! "+"trip time: "+ total_itinerary_duration;
+              win_tooltip.textContent = "You WIN! "+"Trip time: "+ total_itinerary_duration;
               itin_div.appendChild(win_tooltip);
           }
           else {}
