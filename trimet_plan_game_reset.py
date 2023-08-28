@@ -217,6 +217,7 @@ def set_up_itineraries_for_site(itinerary_routes_reduced, itineraries_reduced):
 if __name__ == "__main__":
     tm_boundary = gpd.read_file("tm_route_buffer_bounds.geojson")
     trimet_crs = "EPSG:2913"
+    print("getting origin destination and itinerary")
     gdf_points, itineraries_reduced, itinerary_routes_reduced, tries = generate_random_points_make_itinerary(tm_boundary, trimet_crs)
     
     fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
@@ -226,8 +227,10 @@ if __name__ == "__main__":
 
     origin_destination_centriod_gdf = gpd.GeoDataFrame(pd.DataFrame(['origin_dest_centroid'], columns=['id']),crs="EPSG:4326", geometry=[origin_destination_centriod])
 
+    print("setting up itinerary for site")
     itinerary_routes_long_name, itineraries_reduced_with_long_name = set_up_itineraries_for_site(itinerary_routes_reduced, itineraries_reduced)
 
+    print("putting files in s3")
     gdf_points.to_file("origin_destination_points.geojson", driver="GeoJSON")
     client = boto3.client(
                         's3',
@@ -261,6 +264,7 @@ if __name__ == "__main__":
     client.upload_file("origin_destination_centriod.geojson", "meysohn-sandbox", "trimet_trip_planner/origin_destination_centriod.geojson",ExtraArgs={'ACL':'public-read'})
 
     #add driving duration from mapbox api call
+    print("making mapbox api call")
     mapbox_response = call_mapbox(fromplace, toplace)
 
     if len(mapbox_response['routes'])>0:
@@ -271,3 +275,10 @@ if __name__ == "__main__":
         #write something on the .html side to catch -9999 duration and say "driving duration unavailable"
         with open("driving_route.json", "w") as f:
             f.write("""{'duration_typical': -9999}""")
+    print("putting mapbox duration in s3")
+    client = boto3.client(
+                        's3',
+                        aws_access_key_id=aws_access_key,
+                        aws_secret_access_key=aws_secret_key
+                    )
+    client.upload_file("driving_route.json", "meysohn-sandbox", "trimet_trip_planner/driving_route.json",ExtraArgs={'ACL':'public-read'})
