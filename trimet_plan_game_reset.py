@@ -11,9 +11,9 @@ import json
 import seaborn as sns
 from shapely.ops import unary_union
 
-aws_access_key = os.getenv('aws_access_key','')
-aws_secret_key = os.getenv('aws_secret_key','')
-mapbox_api_key = os.getenv('mapbox_api_key','')
+aws_access_key = os.getenv('AWS_ACCESS_KEY','')
+aws_secret_key = os.getenv('AWS_SECRET_KEY','')
+mapbox_api_key = os.getenv('MAPBOX_API_KEY','')
 
 def load_trimet_boundary_from_s3():
     '''
