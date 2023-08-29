@@ -66,7 +66,7 @@ def call_planner(fromPlace, toPlace):
     base_url = "https://maps.trimet.org/otp_mod/plan"
     time="12:00"
     mode="WALK,BUS,TRAM,RAIL,GONDOLA"
-    maxWalkDistance=5280/2
+    maxWalkDistance=1609 #to match trimet.org ideally 0.25 mile for Bus and 1 mile for MAX but there's only one parameter
     walkSpeed=1.34
     # update number of itineraries to > 3 but reduce to 3 later
     numItineraries=6
