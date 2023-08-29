@@ -170,19 +170,29 @@ def generate_random_points_make_itinerary(tm_boundary, trimet_crs):
         fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
         toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
         json_content = call_planner(fromplace, toplace)
+        #if there's no error message key = 'error' will not be present so '' is returned
+        #len('') is 0 so error_length becomes 0
         error_length = len(json_content.get('error',''))
+        print(error_length)
         if error_length == 0:
             #adding logic to make sure the trip planning is not crazy long
             #this is a crude way of making sure there is 1 itinerary with 2 routes
-            num_routes_in_itin = []
-            for itinerary in json_content['plan']['itineraries']:
-                num_routes = len([leg for leg in itinerary['legs'] if 'TriMet' in leg.get('routeId','')])
-                num_routes_in_itin.append(num_routes)
-            if min(num_routes_in_itin) > 2:
+            itineraries_df = get_itinerary_paths(json_content)
+            max_route_count = (itineraries_df
+                                [itineraries_df['route_id']!='WALK']
+                                .groupby(['itin_idx'])
+                                .agg(route_count=('route_id','nunique')
+                                                ,totalTime=('totalTime','max'))
+                                .reset_index()
+                                .sort_values('totalTime')
+                                .head(3)
+                                ['route_count'].max()
+                                )
+
+            if max_route_count > 2:
                 error_length = 1
         tries += 1
     print(f"number of tries {tries}")
-    itineraries_df = get_itinerary_paths(json_content)
     itineraries_reduced, itinerary_routes_reduced = create_intinerary_gdf_and_reduce(itineraries_df)
     return (gdf_points, itineraries_reduced, itinerary_routes_reduced, tries)
 
