@@ -1,4 +1,8 @@
 # TriMet Trip Game
+
+## Current Version
+The current version of the game is playable [here](https://d1tu6vkegvnwyd.cloudfront.net/trimet_trip_game.html).
+
 ## Purpose
 The purpose of the game is to learn TriMet bus and MAX routes. It's easy to _get somewhere_ by transit. One can look up transit directions on Trimet.org or Google Maps. This does not help to _learn_ transit in a city. In fact, city dwellers generally stay in localized areas so they are not exposed to all routes. This game helps all users engage with TriMet's service and learn by guessing the correct itinerary. Play every day and you'll be surprised at what you learn!
 
