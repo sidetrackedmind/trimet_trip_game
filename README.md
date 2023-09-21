@@ -47,14 +47,18 @@ _3x Daily_:
 
 ## Gameplay
 The game starts with a red circle for the origin and destination point. The goal of the game is to select the route(s) to get from the origin point to the destination point via a searchable dropdown.
+
 ![image](https://github.com/sidetrackedmind/trimet_trip_game/assets/24400820/ca23e86d-9bcb-4a38-81b5-ca40c3450404)
 
 For every correct guess, the route will show up on the map in a bright color and the corresponding route circle within the itinerary bubble will turn blue. 
+
 ![image](https://github.com/sidetrackedmind/trimet_trip_game/assets/24400820/f6effc54-d818-4857-922b-defbb027f2d7)
 
 For every incorrect guess, the corresponding route will show up in a dark red line on the map and the bad guess tracker count will increment up by one. 
+
 ![image](https://github.com/sidetrackedmind/trimet_trip_game/assets/24400820/d49e9b65-520a-4ef4-8c3c-87c8d0ea4777)
 
 When all routes within an itinerary bubble are guessed correctly, the whole itinerary bubble turns blue and says “You WIN!” with the full travel time of the itinerary.
+
 ![image](https://github.com/sidetrackedmind/trimet_trip_game/assets/24400820/b4d82ff0-1ca3-40e7-801b-5491735c8aed)
 
