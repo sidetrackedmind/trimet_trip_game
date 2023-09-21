@@ -46,8 +46,7 @@ _3x Daily_:
 
 
 ## Gameplay
-The game starts with a red circle for the origin and destination point. The goal of the game is to select the route(s) to get from the origin point to the destination point via a searchable dropdown.
-
+The game starts with a red circle for the origin and destination point. The goal of the game is to select the route(s) to get from the origin point to the destination point via a searchable dropdown. <br>
 ![image](https://github.com/sidetrackedmind/trimet_trip_game/assets/24400820/ca23e86d-9bcb-4a38-81b5-ca40c3450404)
 
 For every correct guess, the route will show up on the map in a bright color and the corresponding route circle within the itinerary bubble will turn blue. 
