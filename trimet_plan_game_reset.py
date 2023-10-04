@@ -34,6 +34,20 @@ def random_points_within(poly, num_points):
 
     return points
 
+def find_next_origin_destination_combination():
+    ''''''
+    # trimet_block_groups_combos_tracking = pd.read_csv("trimet_block_groups_combos_tracking.csv")
+    # if (trimet_block_groups_combos_tracking.shape[0]==trimet_block_groups_combos_tracking['combination_used'].sum()):
+    #     #reset when all combinations have been used
+    #     trimet_block_groups_combos_tracking['combination_used'] = 0
+    #     trimet_block_groups_combos_tracking['time_used'] = pd.NaT
+    # else:
+    pass
+
+def generate_point_within_blockgroup():
+    ''''''
+    pass
+
 def generate_points_within_tm_boundary(tm_boundary, trimet_crs):
     '''
     generate 2 points and make sure they are > 1 mile apart

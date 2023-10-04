@@ -601,7 +601,7 @@ for(var i = 0; i < selected_bad_routes.length; i++) {
 
 var map = L.map('map').setView([centroid_geojson['features'][0]['geometry']['coordinates'][1], centroid_geojson['features'][0]['geometry']['coordinates'][0]], 12);
 
-L.tileLayer('https://stamen-tiles-a.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.png', {
+L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png?api_key=7049c2c0-1dc3-4a7e-a46f-98d46cfbcb2b', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> | <a href="http://stamen.com">Stamen Design</a> | <a href="https://developer.trimet.org/gis/">TriMet</a>'
 }).addTo(map);

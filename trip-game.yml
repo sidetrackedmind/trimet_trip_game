@@ -1,0 +1,18 @@
+# trip-game.yml
+name: trip-game
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pandas
+  - geopandas
+  - seaborn
+  - pysal
+  - pip
+  - pip:
+    - ipykernel
+    - boto3
+    - polyline
+    - pygris
+    - python-dotenv
