@@ -78,7 +78,8 @@ def call_planner(fromPlace, toPlace):
     '''
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     base_url = "https://maps.trimet.org/otp_mod/plan"
-    time="12:00"
+    #updated 4/22/24 from hardcoded noon time
+    time=datetime.datetime.now().strftime("%H:%M")
     mode="WALK,BUS,TRAM,RAIL,GONDOLA"
     maxWalkDistance=536 #this distance is in METERS! 536 meters = 1/3 mile. Ideally 0.25 mile for Bus and 1 mile for MAX but there's only one parameter
     walkSpeed=1.34
@@ -99,7 +100,8 @@ def call_mapbox(fromPlace, toPlace):
     '''
     date = datetime.datetime.now().strftime("%Y-%m-%d")
     base_url = "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/"
-    time="12:00"
+    #updated 4/22/24 from hardcoded noon time
+    time=datetime.datetime.now().strftime("%H:%M")
     depart_time=f"{date}T{time}"
     from_lon = fromPlace.split(",")[-1]
     from_lat = fromPlace.split(",")[0]
