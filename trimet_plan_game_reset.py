@@ -245,6 +245,11 @@ if __name__ == "__main__":
     trimet_crs = "EPSG:2913"
     print("getting origin destination and itinerary")
     gdf_points, itineraries_reduced, itinerary_routes_reduced, tries = generate_random_points_make_itinerary(tm_boundary, trimet_crs)
+
+    query_time=datetime.datetime.now().strftime("%I:%M %p")
+    query_time_dict = {'query_time':query_time}
+    with open("trip_planner_query_time.json", "w") as f:
+        f.write(json.dumps(query_time_dict))
     
     fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
     toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
