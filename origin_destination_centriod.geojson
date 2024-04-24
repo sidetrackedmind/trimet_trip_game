@@ -2,6 +2,6 @@
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "id": "origin_dest_centroid" }, "geometry": { "type": "Point", "coordinates": [ -122.594225869689154, 45.47761121136201 ] } }
+{ "type": "Feature", "properties": { "id": "origin_dest_centroid" }, "geometry": { "type": "Point", "coordinates": [ -122.729118291581116, 45.447473490354255 ] } }
 ]
 }
