@@ -3,6 +3,8 @@ import requests
 import pandas as pd
 import geopandas as gpd
 import datetime
+from pytz import timezone
+import pytz
 import polyline
 from shapely.geometry import LineString, Point
 import boto3
@@ -76,10 +78,14 @@ def call_planner(fromPlace, toPlace):
     fromPlace = "lat, lon"
     toPlace = "lat,lon"
     '''
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
+    
     base_url = "https://maps.trimet.org/otp_mod/plan"
     #updated 4/22/24 from hardcoded noon time
-    time=datetime.datetime.now().strftime("%H:%M")
+    #updated github action runs in UTC
+    now_datetime = datetime.datetime.now(tz=pytz.utc)
+    now_datetimepacific = now_datetime.astimezone(timezone('US/Pacific'))
+    date = now_datetimepacific.strftime("%Y-%m-%d")
+    time=now_datetimepacific.strftime("%H:%M")
     mode="WALK,BUS,TRAM,RAIL,GONDOLA"
     maxWalkDistance=536 #this distance is in METERS! 536 meters = 1/3 mile. Ideally 0.25 mile for Bus and 1 mile for MAX but there's only one parameter
     walkSpeed=1.34
@@ -98,10 +104,14 @@ def call_mapbox(fromPlace, toPlace):
 
     mapbox takes lon, lat
     '''
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
+    
     base_url = "https://api.mapbox.com/directions/v5/mapbox/driving-traffic/"
     #updated 4/22/24 from hardcoded noon time
-    time=datetime.datetime.now().strftime("%H:%M")
+    #updated github action runs in UTC
+    now_datetime = datetime.datetime.now(tz=pytz.utc)
+    now_datetimepacific = now_datetime.astimezone(timezone('US/Pacific'))
+    date = now_datetimepacific.strftime("%Y-%m-%d")
+    time=now_datetimepacific.strftime("%H:%M")
     depart_time=f"{date}T{time}"
     from_lon = fromPlace.split(",")[-1]
     from_lat = fromPlace.split(",")[0]
@@ -245,8 +255,9 @@ if __name__ == "__main__":
     trimet_crs = "EPSG:2913"
     print("getting origin destination and itinerary")
     gdf_points, itineraries_reduced, itinerary_routes_reduced, tries = generate_random_points_make_itinerary(tm_boundary, trimet_crs)
-
-    query_time=datetime.datetime.now().strftime("%I:%M %p")
+    now_datetime = datetime.datetime.now(tz=pytz.utc)
+    now_datetimepacific = now_datetime.astimezone(timezone('US/Pacific'))
+    query_time=now_datetimepacific.strftime("%I:%M %p")
     query_time_dict = {'query_time':query_time}
     with open("trip_planner_query_time.json", "w") as f:
         f.write(json.dumps(query_time_dict))
