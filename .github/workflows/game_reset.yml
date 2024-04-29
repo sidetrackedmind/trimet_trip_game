@@ -2,7 +2,7 @@ name: run game_reset.py
 
 on:
   schedule:
-    - cron: '10 2,12,19 * * *' # At 7:10,12:10,17:10 everyday
+    - cron: '5 2,12,19 * * *' # At 7:10,12:10,17:10 everyday
 
 jobs:
   build:
