@@ -180,8 +180,8 @@ text-align:center;
 #map { height: 80vh; z-index: 8;}
 
 
-#search_drop_down {
-    margin-left: 15px;
+#header_id {
+  column-gap: 1em;
 }
 
 #button_container {
@@ -193,6 +193,7 @@ text-align:center;
   column-gap: 1em;
   position: relative;
 }
+
 
 .intin_routes {
   display: block;
@@ -240,7 +241,7 @@ font-size: 1.5rem;
 </head>
 
 <div id="wrap_all"> 
-    <div class="header">
+    <div class="header" id="header_id">
         <div class="h1">Trimet Trip Game</div>
         <div id="search_drop_down">
           <label for="selected_route_dropdown"></label>
@@ -279,13 +280,15 @@ font-size: 1.5rem;
     </div>
     <body>
     <div id="button_container">
-      <div class="driving_duration"></div>
       <div class="bad_circle" id="bad_circle_id">
       </div>
       
       <div class="mega-flex" id="itin_contain">
         </div> 
   </div>
+  <div id="context_container">
+      </div> 
+</div>
 
     <div id="map"></div> 
     
@@ -326,9 +329,24 @@ modal.close();
 	false
 );
 
+
+var header_id_element = document.getElementById("header_id");
+
+fetch("https://raw.githubusercontent.com/sidetrackedmind/trimet_trip_game/main/trip_planner_query_time.json")
+    .then(function (response){
+        return response.json();
+    })
+    .then(function (data) {
+        // console.log(data['query_time'])
+        var query_time_div = document.createElement("div");
+        var query_time = data['query_time'];
+        query_time_div.textContent = "Trip query time: "+query_time
+        header_id_element.appendChild(query_time_div);
+        }
+    );
+
 // add driving duration
 var button_container_element = document.getElementById("button_container");
-
 fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/driving_route.json")
     .then(function (response){
         return response.json();
