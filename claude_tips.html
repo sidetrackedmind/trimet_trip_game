@@ -1,0 +1,90 @@
+To add the feature to highlight the itinerary GeoJSON objects on the map when a user hovers over either the route line or the "correct_circle", and to highlight the "bad guess" route objects when the user hovers over the tooltip list or the object on the map, we can use Leaflet's event handling and styling capabilities. Here's how you could approach this:
+
+Itinerary GeoJSON Highlighting
+
+For each correctly selected route, when you create the GeoJSON layer and add it to the map, store a reference to the layer in a variable or an array. For example:
+javascriptCopy codelet correctRouteLayer;
+
+fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    correctRouteLayer = L.geoJSON(data, {
+      filter: function goodRouteFilter(feature) {
+        if (feature.properties.dropdown_route === val) return true
+      },
+      style: styleRouteLines
+    }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
+  });
+Then, add a mouseover and mouseout event listener to the "correct_circle" elements and the GeoJSON layer to change the style when the user hovers over them:
+javascriptCopy code// For the correct_circle elements
+const correctCircles = document.querySelectorAll('.circle');
+correctCircles.forEach(circle => {
+  circle.addEventListener('mouseover', () => {
+    correctRouteLayer.setStyle({ weight: 8, opacity: 1 });
+  });
+  circle.addEventListener('mouseout', () => {
+    correctRouteLayer.setStyle(styleRouteLines);
+  });
+});
+
+// For the GeoJSON layer
+correctRouteLayer.on('mouseover', () => {
+  correctRouteLayer.setStyle({ weight: 8, opacity: 1 });
+});
+correctRouteLayer.on('mouseout', () => {
+  correctRouteLayer.setStyle(styleRouteLines);
+});
+
+"Bad Guess" Route Highlighting
+
+Similar to the itinerary GeoJSON highlighting, store a reference to the "bad guess" route GeoJSON layers when you create them:
+javascriptCopy codeconst badRouteLayerArray = [];
+
+fetch(route_url)
+  .then(function (response) {
+    return response.json();
+  })
+  .then(function (data) {
+    const badRouteLayer = L.geoJSON(data, {
+      style: {
+        color: '#e0aaa4',
+        weight: 2,
+        opacity: .65
+      }
+    }).addTo(map);
+    badRouteLayerArray.push(badRouteLayer);
+    // ... (existing code)
+  });
+Then, add mouseover and mouseout event listeners to the tooltip list items and the GeoJSON layers to change the style when the user hovers over them:
+javascriptCopy code// For the tooltip list items
+const badTooltipItems = document.querySelectorAll('#bad_tooltiptext_id p');
+badTooltipItems.forEach(item => {
+  item.addEventListener('mouseover', () => {
+    const routeName = item.textContent;
+    const badRouteLayer = badRouteLayerArray.find(layer => layer.feature.properties.route_long_name === routeName);
+    if (badRouteLayer) {
+      badRouteLayer.setStyle({ weight: 4, opacity: 1 });
+    }
+  });
+  item.addEventListener('mouseout', () => {
+    const routeName = item.textContent;
+    const badRouteLayer = badRouteLayerArray.find(layer => layer.feature.properties.route_long_name === routeName);
+    if (badRouteLayer) {
+      badRouteLayer.setStyle({ weight: 2, opacity: 0.65 });
+    }
+  });
+});
+
+// For the GeoJSON layers
+badRouteLayerArray.forEach(layer => {
+  layer.on('mouseover', () => {
+    layer.setStyle({ weight: 4, opacity: 1 });
+  });
+  layer.on('mouseout', () => {
+    layer.setStyle({ weight: 2, opacity: 0.65 });
+  });
+});
+In this approach, we use the setStyle method of the Leaflet GeoJSON layers to change the styling of the layers based on the mouseover and mouseout events. For the "bad guess" routes, we find the corresponding GeoJSON layer by matching the route name with the layer's feature properties.
+Note that you may need to adjust the code slightly based on your existing implementation and data structure, but this should give you a good starting point for implementing the desired functionality.

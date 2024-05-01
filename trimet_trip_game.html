@@ -407,13 +407,13 @@ for (var i = 0; i < itineraries_reduced_geojson['features'].length; i++) {
     if (one_row['properties']['route_id']!='WALK') { 
         if (!(itinerary_idx in itinerary_dict)) {
             var route_dict = {};
-            route_dict[route_idx] = one_row['properties']['dropdown_route']
-            itinerary_dict[itinerary_idx] = [one_row['properties']['dropdown_route']]
+            route_dict[route_idx] = one_row['properties']['route_id']
+            itinerary_dict[itinerary_idx] = [one_row['properties']['route_id']]
             itinerary_alt_dict[itinerary_idx] = route_dict;
         }
         else {
-            route_dict[route_idx] = one_row['properties']['dropdown_route']
-            itinerary_dict[itinerary_idx].push(one_row['properties']['dropdown_route'])
+            route_dict[route_idx] = one_row['properties']['route_id']
+            itinerary_dict[itinerary_idx].push(one_row['properties']['route_id'])
         }
     }
     else {
@@ -449,7 +449,7 @@ var good_routes = [];
 for (var i = 0; i < itin_routes_long_name['features'].length; i++) {
         var one_route = itin_routes_long_name['features'][i];
         // console.log(one_route);
-        var good_route_dd_name = one_route['properties'].dropdown_route;
+        var good_route_dd_name = one_route['properties'].route_id;
         good_routes.push(good_route_dd_name)
         }
 
@@ -477,9 +477,9 @@ fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/gtfs_routes.
 var selected_good_routes = [];
 var selected_bad_routes = [];
 function get_dropdown_data(val){
-    var route_id = val.split(" - ")[0];
+    var route_id = Number(val.split(" - ")[0]);
     // console.log(val.attr('textContent'));
-    if (good_routes.includes(val)) {
+    if (good_routes.includes(route_id)) {
   //  block of code to be executed if the condition is true
   fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
     .then(function (response){
@@ -489,7 +489,7 @@ function get_dropdown_data(val){
         
         L.geoJSON(data, {
             filter: function goodRouteFilter(feature) {
-                if (feature.properties.dropdown_route === val) return true
+                if (Number(feature.properties.route_id) === route_id) return true
             },
         style: styleRouteLines
     }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
@@ -499,7 +499,7 @@ function get_dropdown_data(val){
 //go through the alt itinerary dict and turn the circles blue
 for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
     for (const [route_key, route_value] of Object.entries(it_value)) {
-        if (route_value == val) {
+        if (route_value == route_id) {
           //color correct circle blue
           correct_circle = document.getElementById(it_key+"_"+route_key);
           correct_circle.setAttribute("style", "background-color:#3171da;");
@@ -507,7 +507,7 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
           if ((correct_circle.children.length<1)) {
           var route_tooltip = document.createElement("span");
           route_tooltip.setAttribute("class","tooltiptext");
-          route_tooltip.textContent = route_value;
+          route_tooltip.textContent = val;
           correct_circle.appendChild(route_tooltip);
           }
           else {}
@@ -516,11 +516,11 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
           //add to the running total of correct routes in the itinerary
           if (!("running_total" in itin_div.dataset)) {
             itin_div.dataset.running_total = 1;
-            itin_div.dataset.route_list = val;
+            itin_div.dataset.route_list = route_id;
             }
-            else if (!(itin_div.dataset.route_list.includes(val))) {
+            else if (!(itin_div.dataset.route_list.includes(route_id))) {
               itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
-              itin_div.dataset.route_list += ', ' + val;
+              itin_div.dataset.route_list += ', ' + route_id;
             }
             else {}
           //check if circle is last route in the itinerary
