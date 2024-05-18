@@ -473,6 +473,67 @@ for (var i = 0; i < itin_routes_long_name['features'].length; i++) {
 
 console.log(good_routes);
 
+function processGeoJSONData(data, desired_value) {
+  // Filter the data based on a property (e.g., 'property_name')
+  const filteredData = data.features.filter(feature => {
+    return feature.properties.dropdown_route === desired_value;
+  });
+
+  // Load the filtered data onto the map
+  loadDataOnMap(filteredData);
+}
+
+function loadDataOnMap(filteredData) {
+  const geoJsonLayer = L.geoJSON(filteredData, {
+    onEachFeature: onEachFeature
+  }).addTo(map);
+}
+
+function onEachFeature(feature, layer) {
+  const feature_color = feature.properties.route_color;
+  layer.setStyle({
+    color: feature_color,
+    weight: 4,
+    opacity: .85
+  });
+  layer.on({
+    mouseover: highlightFeature,
+    mouseout: resetRouteLines
+  });
+}
+
+function highlightFeature(e) {
+  const layer = e.target;
+  const feature_color = layer.feature.properties.route_color; 
+  const tooltipText = layer.feature.properties.dropdown_route;
+
+  layer.setStyle({
+    color: "#e0db31", //yellow-ish
+    weight: 6,
+    opacity: .85
+  });
+
+  if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+    layer.bringToFront();
+  }
+
+  layer.bindTooltip(tooltipText, {
+    permanent: false,
+    direction: 'center',
+    className: 'custom-tooltip' // Optional: Add a custom CSS class for styling
+  }).openTooltip();
+}
+
+function resetRouteLines(e) {
+  const layer = e.target;
+  const feature_color = layer.feature.properties.route_color; 
+  console.log("I'm in resetline");
+  layer.setStyle({
+    color: feature_color,
+                weight: 4,
+                opacity: .85
+  });
+}
 
 var dd_select = document.getElementById("selected_route_dropdown");
 
@@ -500,25 +561,20 @@ function get_dropdown_data(val){
     if (good_routes.includes(route_id)) {
   //  block of code to be executed if the condition is true
   fetch("https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/itineraries_reduced_with_long_name.geojson")
-    .then(function (response){
-        return response.json();
-    })
-    .then(function (data) {
-        
-        L.geoJSON(data, {
-            filter: function goodRouteFilter(feature) {
-                if (Number(feature.properties.route_id) === route_id) return true
-            },
-        style: styleRouteLines
-    }).addTo(map).setText(val, {center: true, offset: 10, attributes: {fill: 'black'}});
-    });
-    selected_good_routes.push(val)
+  .then(response => response.json())
+  .then(data => {
+    // Process the GeoJSON data here
+    processGeoJSONData(data, val);
+  })
+  .catch(error => console.error(error));
 
-//go through the alt itinerary dict and turn the circles blue
+  selected_good_routes.push(val)
+
+    //go through the alt itinerary dict and turn the circles blue
 for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
     for (const [route_key, route_value] of Object.entries(it_value)) {
         if (route_value == route_id) {
-          //color correct circle blue
+          //color ßcorrect circle blue
           correct_circle = document.getElementById(it_key+"_"+route_key);
           correct_circle.setAttribute("style", "background-color:#3171da;");
           //add route name to ciricle
@@ -536,7 +592,9 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
             itin_div.dataset.running_total = 1;
             itin_div.dataset.route_list = route_id;
             }
-            else if (!(itin_div.dataset.route_list.includes(route_id))) {
+            // this is messing up if route_list = [72,73,10] and the route_id = 2. I think it see the 2 in the 72.
+            
+            else if (!(itin_div.dataset.route_list.split(", ").includes(route_id))) {
               itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
               itin_div.dataset.route_list += ', ' + route_id;
             }
@@ -559,8 +617,9 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
 
         }
 
-    
-} else {
+  }
+  
+  else {
   //  block of code to be executed if the condition is false
 
     route_url = "https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/route_lines/route_line_" + route_id + ".geojson"
@@ -617,6 +676,8 @@ for(var i = 0; i < selected_bad_routes.length; i++) {
     
 }
 
+
+
 var map = L.map('map').setView([centroid_geojson['features'][0]['geometry']['coordinates'][1], centroid_geojson['features'][0]['geometry']['coordinates'][0]], 12);
 
 L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png?api_key=7049c2c0-1dc3-4a7e-a46f-98d46cfbcb2b', {
@@ -655,13 +716,7 @@ fetch(
   });
 
 
-function styleRouteLines(feature) {
-    return {
-                color: feature.properties.route_color,
-                weight: 4,
-                opacity: .85
-            };
-}
+
 
 
 </script>
