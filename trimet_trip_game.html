@@ -479,8 +479,9 @@ console.log(route_color_dict);
 
 function processGeoJSONData(data, desired_value) {
   // Filter the data based on a property (e.g., 'property_name')
+  
   const filteredData = data.features.filter(feature => {
-    return feature.properties.dropdown_route === desired_value;
+    return Number(feature.properties.route_id) === desired_value;
   });
 
   // Load the filtered data onto the map
@@ -624,7 +625,7 @@ function get_dropdown_data(val){
   .then(response => response.json())
   .then(data => {
     // Process the GeoJSON data here
-    processGeoJSONData(data, val);
+    processGeoJSONData(data, route_id);
   })
   .catch(error => console.error(error));
 
