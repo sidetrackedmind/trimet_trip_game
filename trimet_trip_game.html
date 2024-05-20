@@ -464,14 +464,18 @@ for (const [key, value] of Object.entries(itinerary_alt_dict)) {
 };
 
 var good_routes = [];
+var route_color_dict = {};
 for (var i = 0; i < itin_routes_long_name['features'].length; i++) {
         var one_route = itin_routes_long_name['features'][i];
         // console.log(one_route);
         var good_route_dd_name = one_route['properties'].route_id;
-        good_routes.push(good_route_dd_name)
+        var good_route_color = one_route['properties'].route_color;
+        route_color_dict[good_route_dd_name] = good_route_color;
+        good_routes.push(good_route_dd_name);
         }
 
 console.log(good_routes);
+console.log(route_color_dict);
 
 function processGeoJSONData(data, desired_value) {
   // Filter the data based on a property (e.g., 'property_name')
@@ -493,6 +497,8 @@ function loadBadDataOnMap(data) {
   const geoJsonLayer = L.geoJSON(data, {
     onEachFeature: onEachBadFeature
   }).addTo(map);
+  // Set the z-index of the GeoJSON layer
+  map.getPane('geojsonPane').style.zIndex = 500;
 }
 
 function onEachBadFeature(feature, layer) {
@@ -628,9 +634,10 @@ function get_dropdown_data(val){
 for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) { 
     for (const [route_key, route_value] of Object.entries(it_value)) {
         if (route_value == route_id) {
-          //color ßcorrect circle blue
+          //color correct circle same color as route
+          circle_color = route_color_dict[route_id]
           correct_circle = document.getElementById(it_key+"_"+route_key);
-          correct_circle.setAttribute("style", "background-color:#3171da;");
+          correct_circle.setAttribute("style", "background-color:"+circle_color+";");
           //add route name to ciricle
           if ((correct_circle.children.length<1)) {
           var route_tooltip = document.createElement("span");
@@ -646,7 +653,6 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
             itin_div.dataset.running_total = 1;
             itin_div.dataset.route_list = route_id;
             }
-            // this is messing up if route_list = [72,73,10] and the route_id = 2. I think it see the 2 in the 72.
             
             else if (!(itin_div.dataset.route_list.split(", ").includes(route_id))) {
               itin_div.dataset.running_total = Number(itin_div.dataset.running_total) + 1;
