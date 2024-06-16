@@ -2,7 +2,7 @@
 "type": "FeatureCollection",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "point_type": "origin", "points_str": "45.465861, -122.697178" }, "geometry": { "type": "Point", "coordinates": [ -122.697178066822374, 45.465861309278324 ] } },
-{ "type": "Feature", "properties": { "point_type": "destination", "points_str": "45.517253, -122.4511" }, "geometry": { "type": "Point", "coordinates": [ -122.451100352849807, 45.517252930798534 ] } }
+{ "type": "Feature", "properties": { "point_type": "origin", "points_str": "45.511686, -122.577155" }, "geometry": { "type": "Point", "coordinates": [ -122.577154521022237, 45.511686181759167 ] } },
+{ "type": "Feature", "properties": { "point_type": "destination", "points_str": "45.578888, -122.698259" }, "geometry": { "type": "Point", "coordinates": [ -122.698259192967441, 45.578888007993321 ] } }
 ]
 }
