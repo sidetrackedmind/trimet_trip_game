@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portland Polygons Map</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <style>
+        #map { height: 600px; }
+        #coordinates { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <button id="selectRandomPolygons">Select Two Random Polygons and Create Points</button>
+    <div id="coordinates"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+    <script>
+        // Initialize the map
+        const map = L.map('map').setView([45.5231, -122.6765], 11);  // Portland coordinates
+
+        // Add OpenStreetMap tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const geojsonUrl = 'https://meysohn-sandbox.s3.amazonaws.com/trimet_trip_planner/tm_route_buffer_blockgroup.geojson';
+
+        let geojsonLayer;
+        let polygons = [];
+        let randomPointsLayer;
+        let originPoint, destinationPoint;
+
+        // Function to load GeoJSON from S3
+        function loadGeoJSONFromS3() {
+            fetch(geojsonUrl)
+                .then(response => response.json())
+                .then(data => {
+                    geojsonLayer = L.geoJSON(data, {
+                        style: {
+                            fillColor: '#3388ff',
+                            weight: 2,
+                            opacity: 1,
+                            color: 'white',
+                            fillOpacity: 0.7
+                        }
+                    }).addTo(map);
+
+                    // Store all polygons for later use
+                    geojsonLayer.eachLayer(layer => {
+                        if (layer instanceof L.Polygon) {
+                            polygons.push(layer);
+                        }
+                    });
+
+                    // Fit the map to the GeoJSON bounds
+                    map.fitBounds(geojsonLayer.getBounds());
+                })
+                .catch(error => {
+                    console.error("Error loading GeoJSON:", error);
+                });
+        }
+
+        // Function to create a random point within a polygon
+        function createRandomPointInPolygon(polygon) {
+            const bounds = polygon.getBounds();
+            let point;
+            do {
+                const lat = bounds.getSouth() + Math.random() * (bounds.getNorth() - bounds.getSouth());
+                const lng = bounds.getWest() + Math.random() * (bounds.getEast() - bounds.getWest());
+                point = turf.point([lng, lat]);
+            } while (!turf.booleanPointInPolygon(point, polygon.toGeoJSON()));
+            return point;
+        }
+
+        // Function to select two random polygons and create labeled points
+        function selectRandomPolygonsAndCreatePoints() {
+            // Remove previous random points if any
+            if (randomPointsLayer) {
+                map.removeLayer(randomPointsLayer);
+            }
+
+            // Reset previously selected polygons
+            geojsonLayer.resetStyle();
+
+            if (polygons.length < 2) {
+                console.error("Not enough polygons to select from");
+                return;
+            }
+
+            // Select two unique random indices
+            const indices = [];
+            while (indices.length < 2) {
+                const index = Math.floor(Math.random() * polygons.length);
+                if (!indices.includes(index)) {
+                    indices.push(index);
+                }
+            }
+
+            const randomPoints = [];
+
+            // Highlight selected polygons and create random points
+            indices.forEach((index, i) => {
+                const polygon = polygons[index];
+                polygon.setStyle({
+                    fillColor: 'red',
+                    fillOpacity: 0.9
+                });
+                polygon.bringToFront();
+
+                // Create a random point within the polygon
+                const randomPoint = createRandomPointInPolygon(polygon);
+                randomPoint.properties = {
+                    label: i === 0 ? "Origin" : "Destination"
+                };
+                randomPoints.push(randomPoint);
+
+                // Store the point for later access
+                if (i === 0) {
+                    originPoint = randomPoint;
+                } else {
+                    destinationPoint = randomPoint;
+                }
+            });
+
+            // Add random points to the map
+            randomPointsLayer = L.geoJSON(turf.featureCollection(randomPoints), {
+                pointToLayer: (feature, latlng) => {
+                    const marker = L.circleMarker(latlng, {
+                        radius: 8,
+                        fillColor: feature.properties.label === "Origin" ? "#00ff00" : "#ff0000",
+                        color: "#000",
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                    
+                    // Add a popup with the label
+                    marker.bindPopup(feature.properties.label, {
+                        closeButton: false,
+                        offset: L.point(0, -4)
+                    });
+                    
+                    // Open the popup immediately
+                    marker.openPopup();
+
+                    return marker;
+                }
+            }).addTo(map);
+
+            // Display coordinates
+            displayCoordinates();
+        }
+
+        // Function to display coordinates
+        function displayCoordinates() {
+            const coordinatesDiv = document.getElementById('coordinates');
+            if (originPoint && destinationPoint) {
+                const originCoords = originPoint.geometry.coordinates;
+                const destCoords = destinationPoint.geometry.coordinates;
+                coordinatesDiv.innerHTML = `
+                    <strong>Origin:</strong> [${originCoords[1].toFixed(6)}, ${originCoords[0].toFixed(6)}]<br>
+                    <strong>Destination:</strong> [${destCoords[1].toFixed(6)}, ${destCoords[0].toFixed(6)}]
+                `;
+            } else {
+                coordinatesDiv.innerHTML = "Points not yet created";
+            }
+        }
+
+        // Load GeoJSON when the page loads
+        loadGeoJSONFromS3();
+
+        // Add click event listener to the button
+        document.getElementById('selectRandomPolygons').addEventListener('click', selectRandomPolygonsAndCreatePoints);
+    </script>
+</body>
+</html>
