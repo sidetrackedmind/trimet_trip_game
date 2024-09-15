@@ -9,6 +9,8 @@ dependencies:
   - geopandas
   - seaborn
   - pysal
+  - pyarrow
+  - fastparquet
   - pip
   - pip:
     - ipykernel

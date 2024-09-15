@@ -5,3 +5,4 @@ gtfs/*
 exploration_notebooks/gis/*
 exploration_notebooks/gtfs/*
 *.afdesign
+trimet_block_groups_combos_tracking.csv
