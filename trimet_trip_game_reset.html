@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portland Polygons Map</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
     <style>
         #map { height: 600px; }
         #coordinates { margin-top: 10px; }
@@ -14,10 +13,76 @@
     <div id="map"></div>
     <button id="selectRandomPolygons">Select Two Random Polygons and Create Points</button>
     <div id="coordinates"></div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+<script type="text/javascript" src="https://rawgit.com/jieter/Leaflet.encoded/master/Polyline.encoded.js"></script>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+    
     <script>
+
+async function fetchData(baseUrl, params) {
+
+  // Create URLSearchParams object
+  const searchParams = new URLSearchParams(params);
+
+  // Construct the full URL
+  const url = `${baseUrl}?${searchParams.toString()}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    // Assign the response data to a variable
+    parseItineraryLegs(data);
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+    // Example usage:
+    const apiUrl = 'https://maps.trimet.org/otp_mod/plan';
+    const parameters = {
+        fromPlace: '45.475314,-122.824433',
+        toPlace: '45.579503,-122.684412',
+        date: '2024-09-16',
+        time: '14:20',
+        mode: 'WALK,BUS,TRAM,RAIL,GONDOLA',
+        maxWalkDistance:536,
+        walkSpeed: 1.34,
+        numItineraries: 2,
+        otherThanPreferredRoutesPenalty: 900
+    };
+
+    fetchData(apiUrl, parameters);
+
+    // Assuming 'response' is your JSON response from the API
+function parseItineraryLegs(response) {
+  const allLegs = [];
+
+  // Iterate through all itineraries
+  response.plan.itineraries.forEach((itinerary, index) => {
+    // Iterate through legs of each itinerary
+    console.log("we made it here");
+    console.log(itinerary);
+    itinerary.legs.forEach(leg => {
+      const legInfo = {
+        itineraryIndex: index,
+        mode: leg.MODE,
+        route: leg.route ? leg.route.shortName : null,
+        geometry: L.Polyline.fromEncoded(leg.legGeometry.points)
+      };
+      allLegs.push(legInfo);
+      console.log(legInfo);
+    });
+  });
+
+  return allLegs;
+}
+
+
+
+
         // Initialize the map
         const map = L.map('map').setView([45.5231, -122.6765], 11);  // Portland coordinates
 
@@ -182,6 +247,7 @@
         // Access destination coordinates
         const destLat = destinationPoint.geometry.coordinates[1];
         const destLng = destinationPoint.geometry.coordinates[0];
+        
     </script>
 </body>
 </html>
