@@ -7,12 +7,39 @@
     <style>
         #map { height: 600px; }
         #coordinates { margin-top: 10px; }
+        /* body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        } */
+        #buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #message {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <button id="selectRandomPolygons">Select Two Random Polygons and Create Points</button>
     <div id="coordinates"></div>
+    <div id="buttons"></div>
+    <div id="message"></div>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
      integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
      crossorigin=""/>
@@ -24,29 +51,105 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
     
     <script>
+// look up stops near the origin and end of each leg for the next guess list
+// https://developer.trimet.org/ws/v1/stops?json=true&appId=8CBD14D520C6026CC7EEE56A9&showRoutes=true&meters=1609&ll=45.51704561447618,-122.65432834625246
 
-async function fetchData(baseUrl, params) {
 
-  // Create URLSearchParams object
-  const searchParams = new URLSearchParams(params);
+        let attemptsLeft = 2;
 
-  // Construct the full URL
-  const url = `${baseUrl}?${searchParams.toString()}`;
+        function createButtons(numbers, correctAnswer) {
+            const buttonsContainer = document.getElementById('buttons');
+            numbers.forEach(number => {
+                const button = document.createElement('button');
+                button.textContent = number;
+                button.addEventListener('click', () => checkAnswer(number, button, correctAnswer));
+                buttonsContainer.appendChild(button);
+            });
+        }
 
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    console.log("API response:");
-    console.log(data);
+        function checkAnswer(number, button, correctAnswer) {
+            if (attemptsLeft > 0) {
+                const messageElement = document.getElementById('message');
+                if (number === correctAnswer) {
+                    button.style.backgroundColor = 'green';
+                    messageElement.textContent = "Congratulations, that's correct!";
+                    disableAllButtons();
+                } else {
+                    button.style.backgroundColor = 'gray';
+                    attemptsLeft--;
+                    if (attemptsLeft > 0) {
+                        messageElement.textContent = `Sorry, that's incorrect. You have ${attemptsLeft} attempt left.`;
+                    } else {
+                        messageElement.textContent = `Sorry, that's incorrect. The correct answer was ${correctAnswer}.`;
+                        revealCorrectAnswer();
+                    }
+                }
+                button.disabled = true;
+            }
+        }
 
-    // Assign the response data to a variable
-    parsedInfo = parseItineraryLegs(data, itineraryGroup);
+        function disableAllButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.textContent != correctAnswer) {
+                    button.disabled = true;
+                    button.classList.add('disabled');
+                }
+            });
+        }
 
-   
+        function revealCorrectAnswer() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.textContent == correctAnswer) {
+                    button.style.backgroundColor = 'green';
+                } else {
+                    button.disabled = true;
+                    button.classList.add('disabled');
+                }
+            });
+        }
 
-  } catch (error) {
-    console.error('Error fetching data:', error);
+
+function parseNearRoutes(response) {
+
+    allRoutes = [];
+
+    response.resultSet.location.forEach((location, index) => {
+        // console.log("one location");
+        // console.log(location);
+        const routes = location.route;
+        routes.forEach((route, index) => {
+            oneRoute = route.route;
+            // console.log("oneRoute");
+            // console.log(oneRoute);
+            allRoutes.push(oneRoute);
+        });
+    });
+    console.log("allRoutes");
+    console.log(allRoutes);
+    uniqRoutes = [...new Set(allRoutes)]
+    
+
+    return uniqRoutes
+
+}
+
+function makeSynchronousAPICall(url, params) {
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', buildURLWithParams(url, params), false); // false for synchronous
+  xhr.send();
+
+  if (xhr.status === 200) {
+    return JSON.parse(xhr.responseText);
+  } else {
+    throw new Error('API call failed with status ' + xhr.status);
   }
+}
+
+function buildURLWithParams(url, params) {
+  const queryParams = new URLSearchParams(params);
+  return `${url}?${queryParams.toString()}`;
 }
 
 function getColorForMode(mode) {
@@ -77,20 +180,30 @@ function parseItineraryLegs(response, itineraryGroup) {
     // Iterate through legs of each itinerary
     console.log("we made it here");
     console.log(itinerary);
+    nonWalkLegIds = [];
     itinerary.legs.forEach(leg => {
       
-     
+    
     const mode = leg.mode;
     const geometry = leg.legGeometry.points;
 
     const polylineOptions = {
       color: getColorForMode(mode),
+      route: leg.route,
       weight: 2,
       opacity: 1
     };
 
     const polyline = L.Polyline.fromEncoded(geometry, polylineOptions);
-    itineraryGroup.addLayer(polyline);
+    
+
+    if (leg.mode != 'WALK') {
+        itineraryGroup.addLayer(polyline);
+    }
+    else {
+
+    }
+
       });
 
 
@@ -100,6 +213,35 @@ function parseItineraryLegs(response, itineraryGroup) {
 itineraryGroup.addTo(map);
 }
 
+  // Assuming 'response' is your JSON response from the API
+  function parseItineraryRoutes(response) {
+    
+
+  // Iterate through all itineraries
+  response.plan.itineraries.forEach((itinerary, index) => {
+
+    nonWalkRoutes = [];
+    itinerary.legs.forEach(leg => {
+      
+    if (leg.mode != 'WALK') {
+        nonWalkRoutes.push(Number(leg.route));
+    }
+    else {
+
+    }
+
+      });
+
+
+    });
+
+    console.log("nonWalkRoutes inside parseItineraryRoutes");
+    console.log(nonWalkRoutes);
+
+    return nonWalkRoutes
+    
+
+}
 
 
 
@@ -251,7 +393,7 @@ itineraryGroup.addTo(map);
                     <strong>Origin:</strong> [${originCoords[1].toFixed(6)}, ${originCoords[0].toFixed(6)}]<br>
                     <strong>Destination:</strong> [${destCoords[1].toFixed(6)}, ${destCoords[0].toFixed(6)}]
                 `;
-            // Example usage:
+            // 
             const apiUrl = 'https://maps.trimet.org/otp_mod/plan';
             const parameters = {
                 fromPlace: `'${originCoords[1].toFixed(6)}, ${originCoords[0].toFixed(6)}'`,
@@ -265,9 +407,38 @@ itineraryGroup.addTo(map);
                 otherThanPreferredRoutesPenalty: 900
             };
 
-            
 
-            fetchData(apiUrl, parameters);
+        // https://developer.trimet.org/ws/v1/stops?json=true&appId=8CBD14D520C6026CC7EEE56A9&showRoutes=true&meters=1609&ll=45.51704561447618,-122.65432834625246
+        const apiUrl2 = 'https://developer.trimet.org/ws/v1/stops';
+            const parameters2 = {
+                ll: `${originCoords[1].toFixed(6)},${originCoords[0].toFixed(6)}`,
+                meters: 1609,
+                json: true,
+                appId: '8CBD14D520C6026CC7EEE56A9',
+                showRoutes:true
+            };
+
+            
+            apiResponse = makeSynchronousAPICall(apiUrl, parameters);
+            console.log("test sync api response");
+            console.log(apiResponse);
+
+            parseItineraryLegs(apiResponse, itineraryGroup);
+
+            nonWalkRoutes = parseItineraryRoutes(apiResponse);
+            console.log("nonWalkRoutes outside parseItineraryRoutes");
+            console.log(nonWalkRoutes);
+
+            apiResponse2 = makeSynchronousAPICall(apiUrl2, parameters2);
+            console.log("test sync api response 2");
+            console.log(apiResponse2);
+            
+            parsedRoutes = parseNearRoutes(apiResponse2);
+            console.log("parsedRoutes put into createButtons");
+            console.log(parsedRoutes);
+
+
+            createButtons(parsedRoutes, nonWalkRoutes[0]);
 
             } else {
                 coordinatesDiv.innerHTML = "Points not yet created";
