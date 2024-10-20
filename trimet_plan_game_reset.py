@@ -195,6 +195,7 @@ def generate_random_points_make_itinerary(tm_boundary, trimet_crs):
         gdf_points, dist_btw_points = generate_points_within_tm_boundary(tm_boundary, trimet_crs)
         fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
         toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
+        print(f"calling planner with fromplace {fromplace}, toplace {toplace}")
         json_content = call_planner(fromplace, toplace)
         #if there's no error message key = 'error' will not be present so '' is returned
         #len('') is 0 so error_length becomes 0
