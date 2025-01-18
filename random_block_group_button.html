@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Random Point Selector</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-pRflPxz/LTSmi2/QCAtmY/TNj4b04r/mjkXYZqDC+GmJ/1v1"
+    crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-ZU+kvkQf/QCAUgb2BjnKcj4xWm04bQFyxH6GCHzzT/ol"
+    crossorigin=""></script>
+  <script src='https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js'></script>
+</head>
+<body>
+  <div id="map" style="width: 100%; height: 500px;"></div>
+  <button id="generateButton">Generate Random Pair</button>
+
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([45.52, -122.68], 12); 
+
+    // Add a basemap (e.g., OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // Load GeoJSON data from AWS S3
+    fetch('https://meysohn-sandbox.trimet_trip_planner/tm_route_buffer_blockgroup.geojson')
+      .then(response => response.json())
+      .then(data => {
+        // Create a GeoJSON layer
+        var geojsonLayer = L.geoJson(data).addTo(map);
+
+        // Function to generate random pair of indices
+        function generateRandomPair() {
+          // Get the number of features
+          var numFeatures = data.features.length;
+
+          // Generate two unique random indices
+          var index1 = Math.floor(Math.random() * numFeatures);
+          var index2 = Math.floor(Math.random() * numFeatures);
+          while (index2 === index1) {
+            index2 = Math.floor(Math.random() * numFeatures);
+          }
+
+          // Clear existing markers
+          if (marker1) {
+            map.removeLayer(marker1);
+          }
+          if (marker2) {
+            map.removeLayer(marker2);
+          }
+
+          // Create markers for the selected features
+          marker1 = L.marker(data.features[index1].geometry.coordinates).addTo(map);
+          marker2 = L.marker(data.features[index2].geometry.coordinates).addTo(map);
+        }
+
+        // Add event listener to the button
+        document.getElementById('generateButton').addEventListener('click', generateRandomPair);
+      });
+  </script>
+</body>
+</html>
