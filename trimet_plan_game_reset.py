@@ -195,6 +195,7 @@ def generate_random_points_make_itinerary(tm_boundary, trimet_crs):
         gdf_points, dist_btw_points = generate_points_within_tm_boundary(tm_boundary, trimet_crs)
         fromplace = gdf_points[gdf_points['point_type']=='origin']['points_str'].to_numpy()[0]
         toplace = gdf_points[gdf_points['point_type']=='destination']['points_str'].to_numpy()[0]
+        print(f"calling planner with fromplace {fromplace}, toplace {toplace}")
         json_content = call_planner(fromplace, toplace)
         #if there's no error message key = 'error' will not be present so '' is returned
         #len('') is 0 so error_length becomes 0
@@ -236,6 +237,7 @@ def set_up_itineraries_for_site(itinerary_routes_reduced, itineraries_reduced):
     color_map['WALK'] = '#bf5f58'
 
     color_map_str = {str(item[0]):item[1] for item in color_map.items()}
+    print(f"added print for color_map_str: {color_map_str}")
 
     itinerary_routes_long_name['route_color'] = itinerary_routes_long_name['route_id'].apply(lambda x: color_map[x])
     itinerary_routes_long_name['dropdown_route'] = itinerary_routes_long_name.apply(lambda x: str(x['route_id'])+" - "+str(x['route_long_name']), axis=1)
