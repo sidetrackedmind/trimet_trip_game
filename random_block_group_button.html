@@ -68,6 +68,15 @@
 
           geojsonLayer.setStyle(highlightFeature);
 
+          // Use turf.js to get a random point within each selected feature
+          var point1 = turf.pointOnFeature(data.features[index1]);
+          var point2 = turf.pointOnFeature(data.features[index2]);
+          console.log(point1);
+          console.log(point1.geometry.coordinates);
+          // Create markers at the random points
+          marker1 = L.marker(point1.geometry.coordinates.reverse()).addTo(map);
+          marker2 = L.marker(point2.geometry.coordinates.reverse()).addTo(map);
+
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
             L.geoJson(data.features[index1]),
