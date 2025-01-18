@@ -10,15 +10,22 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.27.1/full/pyodide.js"></script>
     <script type="text/javascript">
       async function main() {
+        // Show loading div
+        document.getElementById("loadingdiv").style.display = "block";
+
         let pyodide = await loadPyodide();
         await pyodide.loadPackage("micropip");
         const micropip = pyodide.pyimport("micropip");
         await micropip.install("pytz");
+        await micropip.install("requests");
+
+        // Hide loading div after libraries are loaded
+        document.getElementById("loadingdiv").style.display = "none";
+
         await pyodide.runPython(`
         import pytz
         import requests
         import datetime
-        import json
         fromPlace = "45.516194, -122.675840" #Downtown Portland, OR
         toPlace = "45.562604, -122.682919" #Killingsworth & Interstate MAX Station
         base_url = "https://maps.trimet.org/otp_mod/plan"
