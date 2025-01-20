@@ -10,12 +10,28 @@
  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
      integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
      crossorigin=""></script>
+<script src="gettrimettripplan.js"></script>
+<script src="getnearbyroutes.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.0/leaflet.textpath.min.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js'></script>
+
+  <style>
+.route-button {
+  margin: 5px;
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+  </style>
 </head>
 <body>
   <div id="map" style="width: 100%; height: 500px;"></div>
   <button id="generateButton">Generate Random Pair</button>
+
+  <div id="buttonContainer" style="text-align: center;"></div>
 
   <script>
     // Initialize the map
@@ -26,12 +42,18 @@
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
+    
+
+
     // Load GeoJSON data from AWS S3
     fetch('https://meysohn-sandbox.s3.us-east-1.amazonaws.com/trimet_trip_planner/tm_route_buffer_blockgroup.geojson')
       .then(response => response.json())
       .then(data => {
         // Create a GeoJSON layer
         var geojsonLayer = L.geoJson(data).addTo(map);
+
+        // Initialize markers as global variables
+        let marker1, marker2;
 
         // Function to generate random pair of indices
         function generateRandomPair() {
@@ -68,14 +90,55 @@
 
           geojsonLayer.setStyle(highlightFeature);
 
+          // Remove old markers from the map
+          if (marker1) {
+            map.removeLayer(marker1);
+          }
+          if (marker2) {
+            map.removeLayer(marker2);
+          }
+
           // Use turf.js to get a random point within each selected feature
           var point1 = turf.pointOnFeature(data.features[index1]);
           var point2 = turf.pointOnFeature(data.features[index2]);
-          console.log(point1);
+          // console.log(point1);
           console.log(point1.geometry.coordinates);
+          
           // Create markers at the random points
-          marker1 = L.marker(point1.geometry.coordinates.reverse()).addTo(map);
-          marker2 = L.marker(point2.geometry.coordinates.reverse()).addTo(map);
+          marker1 = L.marker(point1.geometry.coordinates.reverse()).bindTooltip("Origin", { permanent: true, opacity: 0.7 })
+          .openTooltip().addTo(map);
+          
+          marker2 = L.marker(point2.geometry.coordinates.reverse()).bindTooltip("Destination", { permanent: true, opacity: 0.7 })
+          .openTooltip().addTo(map);
+
+          let fromPlace = `${point1.geometry.coordinates[0]}, ${point1.geometry.coordinates[1]}`;
+          let toPlace = `${point2.geometry.coordinates[0]}, ${point2.geometry.coordinates[1]}`;
+
+          // Example usage
+        // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
+        // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
+
+        // sourced from getnearbyroutes.js
+        async function asyncGetNearbyRoutes(fromPlace) {
+          try {
+            const routeNumbers = await getNearbyRoutes(fromPlace); 
+
+              routeNumbers.forEach(route => {
+                  const button = document.createElement('button');
+                  button.textContent = `Route ${route}`;
+                  button.classList.add('route-button'); // Add a CSS class for styling
+                  buttonContainer = document.getElementById('buttonContainer');
+                  buttonContainer.appendChild(button);
+                });
+          } catch (error) {
+            console.error("Error fetching nearby routes:", error);
+            document.getElementById('route-output').textContent = "Error retrieving routes.";
+          }
+        }
+        asyncGetNearbyRoutes(fromPlace);
+
+        // sourced from gettrimettripplan.js
+        getTrimetPlan(fromPlace, toPlace);
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
@@ -83,6 +146,7 @@
             L.geoJson(data.features[index2])
           ]).getBounds();
           map.fitBounds(bounds);
+
         }
 
         // Add event listener to the button
