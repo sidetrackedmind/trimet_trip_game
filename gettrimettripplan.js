@@ -1,6 +1,6 @@
 // Description: This script is used to get the trip plan from Trimet API.
 
-function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 805, walkSpeed = 1.34, numItineraries = 3) {
+function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 805, walkSpeed = 1.34, numItineraries = 1) {
     const baseUrl = "https://maps.trimet.org/otp_mod/plan";
   
     // 805 meters = 1/2 mile. 1.34 m/s = 3 mph
@@ -27,13 +27,21 @@ function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 805, walkSpeed = 1.
       walkSpeed,
       numItineraries,
     });
-  
-    fetch(`${baseUrl}?${params}`)
+
+    return new Promise((resolve, reject) => {
+      fetch(`${baseUrl}?${params}`)
     .then(response => response.json())
     .then(data => {
-      console.log("Trimet API response:", data);
-    })
-    .catch(error => {
-      console.error("Error fetching Trimet directions:", error);
+      // only deal with 1 itinerary for now
+      const itinerary = data.plan.itineraries[0];
+      const legs = itinerary.legs;
+      const trimetLegs = legs.filter(leg => 
+        leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
+      );
+          resolve(trimetLegs); // Resolve the promise with routeNumbers
+        })
+        .catch(error => {
+          reject(error); // Reject the promise with error
+        });
     });
   }

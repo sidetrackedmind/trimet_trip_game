@@ -28,14 +28,18 @@
   </style>
 </head>
 <body>
-  <div id="map" style="width: 100%; height: 500px;"></div>
   <button id="generateButton">Generate Random Pair</button>
-
-  <div id="buttonContainer" style="text-align: center;"></div>
+  <div id="map" style="width: 100%; height: 500px;"></div>
+  <div id="buttonContainer-0" style="text-align: center;"></div>
+  <div id="buttonContainer-1" style="text-align: center;"></div>
+  <div id="buttonContainer-2" style="text-align: center;"></div>
+  <div id="buttonContainer-3" style="text-align: center;"></div>
 
   <script>
     // Initialize the map
     var map = L.map('map').setView([45.52, -122.68], 12); 
+
+    const legIndex = 0;
 
     // Add a basemap (e.g., OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -118,27 +122,45 @@
         // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
         // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
 
+        // sourced from gettrimettripplan.js
+        async function asyncgetTrimetPlan(fromPlace, toPlace) {
+          try {
+            const trimetPlan = await getTrimetPlan(fromPlace, toPlace);
+            return trimetPlan;
+          } catch (error) {
+            console.error("Error fetching nearby routes:", error);
+          }
+        }
+
         // sourced from getnearbyroutes.js
         async function asyncGetNearbyRoutes(fromPlace) {
           try {
             const routeNumbers = await getNearbyRoutes(fromPlace); 
 
-              routeNumbers.forEach(route => {
-                  const button = document.createElement('button');
-                  button.textContent = `Route ${route}`;
-                  button.classList.add('route-button'); // Add a CSS class for styling
-                  buttonContainer = document.getElementById('buttonContainer');
-                  buttonContainer.appendChild(button);
-                });
+            routeNumbers.forEach(route => {
+            const button = document.createElement('button');
+            button.textContent = `Route ${route}`;
+            button.classList.add('route-button'); 
+
+            button.addEventListener('click', () => {
+              if (route === 'special') { 
+                // Perform the action for the special route
+                alert(`You clicked on Route ${route}!`)
+              } 
+            });
+
+            buttonContainer = document.getElementById(`buttonContainer-${legIndex}`);
+            buttonContainer.appendChild(button);
+});
           } catch (error) {
             console.error("Error fetching nearby routes:", error);
             document.getElementById('route-output').textContent = "Error retrieving routes.";
           }
         }
-        asyncGetNearbyRoutes(fromPlace);
 
-        // sourced from gettrimettripplan.js
-        getTrimetPlan(fromPlace, toPlace);
+        asyncgetTrimetPlan(fromPlace, toPlace);
+
+        asyncGetNearbyRoutes(fromPlace);
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
