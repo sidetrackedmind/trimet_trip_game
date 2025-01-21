@@ -28,20 +28,10 @@ function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 805, walkSpeed = 1.
       numItineraries,
     });
 
-    return new Promise((resolve, reject) => {
-      fetch(`${baseUrl}?${params}`)
-    .then(response => response.json())
-    .then(data => {
-      // only deal with 1 itinerary for now
-      const itinerary = data.plan.itineraries[0];
-      const legs = itinerary.legs;
-      const trimetLegs = legs.filter(leg => 
-        leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
-      );
-          resolve(trimetLegs); // Resolve the promise with routeNumbers
-        })
-        .catch(error => {
-          reject(error); // Reject the promise with error
-        });
-    });
-  }
+    var xhReq = new XMLHttpRequest();
+    xhReq.open("GET", `${baseUrl}?${params}`, false);
+    xhReq.send(null);
+    var raw_response = JSON.parse(xhReq.responseText);
+    return raw_response;
+
+    }

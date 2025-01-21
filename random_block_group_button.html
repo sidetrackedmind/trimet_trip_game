@@ -12,8 +12,10 @@
      crossorigin=""></script>
 <script src="gettrimettripplan.js"></script>
 <script src="getnearbyroutes.js"></script>
+<script src="decodePolyine.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.0/leaflet.textpath.min.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js'></script>
+  
 
   <style>
 .route-button {
@@ -133,8 +135,12 @@
         }
 
         // sourced from getnearbyroutes.js
-        async function asyncGetNearbyRoutes(fromPlace) {
+        async function asyncGetNearbyRoutes(fromPlace, trimetLeg) {
           try {
+            console.log(trimetLeg);
+            winningRoute = trimetLeg.routeId.split(":")[1];
+            const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
+            console.log(decodedCoordinates);
             const routeNumbers = await getNearbyRoutes(fromPlace); 
 
             routeNumbers.forEach(route => {
@@ -143,9 +149,12 @@
             button.classList.add('route-button'); 
 
             button.addEventListener('click', () => {
-              if (route === 'special') { 
+              if (`${route}` === `${winningRoute}`) { 
                 // Perform the action for the special route
-                alert(`You clicked on Route ${route}!`)
+                console.log(`You clicked on Route ${route}!`)
+                const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
+                // polyline.setText(`Route ${route}`, { repeat: true, offset: 10, attributes: { fill: 'red' } });
+                console.log(polyline);
               } 
             });
 
@@ -158,9 +167,15 @@
           }
         }
 
-        asyncgetTrimetPlan(fromPlace, toPlace);
+        trimetPlan = getTrimetPlan(fromPlace, toPlace);
 
-        asyncGetNearbyRoutes(fromPlace);
+        const itinerary = trimetPlan.plan.itineraries[0];
+        const legs = itinerary.legs;
+        const trimetLegs = legs.filter(leg => 
+          leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
+        );
+  
+        asyncGetNearbyRoutes(fromPlace, trimetLegs[legIndex]);
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
