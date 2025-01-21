@@ -59,7 +59,7 @@
         var geojsonLayer = L.geoJson(data).addTo(map);
 
         // Initialize markers as global variables
-        let marker1, marker2;
+        let marker1, marker2, marker3
 
         // Function to generate random pair of indices
         function generateRandomPair() {
@@ -103,6 +103,9 @@
           if (marker2) {
             map.removeLayer(marker2);
           }
+          if (marker3) {
+            map.removeLayer(marker2);
+          }
 
           // Use turf.js to get a random point within each selected feature
           var point1 = turf.pointOnFeature(data.features[index1]);
@@ -140,7 +143,9 @@
             console.log(trimetLeg);
             winningRoute = trimetLeg.routeId.split(":")[1];
             const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
+            const lastCoordinate = decodedCoordinates[decodedCoordinates.length - 1];
             console.log(decodedCoordinates);
+            console.log(lastCoordinate);
             const routeNumbers = await getNearbyRoutes(fromPlace); 
 
             routeNumbers.forEach(route => {
@@ -155,6 +160,8 @@
                 const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
                 // polyline.setText(`Route ${route}`, { repeat: true, offset: 10, attributes: { fill: 'red' } });
                 console.log(polyline);
+                marker3 = L.marker(lastCoordinate).bindTooltip("lastCoords", { permanent: true, opacity: 0.7 })
+          .openTooltip().addTo(map);
               } 
             });
 
