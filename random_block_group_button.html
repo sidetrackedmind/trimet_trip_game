@@ -41,9 +41,7 @@
     // Initialize the map
     var map = L.map('map').setView([45.52, -122.68], 12); 
 
-    const legIndex = 0;
-
-    // Add a basemap (e.g., OpenStreetMap)
+        // Add a basemap (e.g., OpenStreetMap)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
@@ -133,47 +131,53 @@
             const trimetPlan = await getTrimetPlan(fromPlace, toPlace);
             return trimetPlan;
           } catch (error) {
+            console.error("Error fetching TriMet Plan", error);
+          }
+        }
+
+        async function asyncGetNearbyRoutes(fromPlace) {
+          try {
+            console.log("Fetching nearby routes...");
+            const routeNumbers = await getNearbyRoutes(fromPlace);
+            console.log(routeNumbers);
+            routeNumbers.then(routeNumbersSet => {
+              console.log(routeNumbersSet);
+              localStorage.setItem("routeNumbersSet", routeNumbersSet);
+            });
+            
+          } catch (error) {
             console.error("Error fetching nearby routes:", error);
           }
         }
 
-        // sourced from getnearbyroutes.js
-        async function asyncGetNearbyRoutes(fromPlace, trimetLeg) {
-          try {
-            console.log(trimetLeg);
-            winningRoute = trimetLeg.routeId.split(":")[1];
-            const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
-            const lastCoordinate = decodedCoordinates[decodedCoordinates.length - 1];
-            console.log(decodedCoordinates);
-            console.log(lastCoordinate);
-            const routeNumbers = await getNearbyRoutes(fromPlace); 
-
-            routeNumbers.forEach(route => {
-            const button = document.createElement('button');
-            button.textContent = `Route ${route}`;
-            button.classList.add('route-button'); 
-
-            button.addEventListener('click', () => {
-              if (`${route}` === `${winningRoute}`) { 
+        function winningRouteFunction(trimetLegs, legIndex, clickedRoute) {
+          // 
+          winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
+          trimetLeg = trimetLegs[legIndex];
+          const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
+          if (`${clickedRoute}` === `${winningRoute}`) { 
                 // Perform the action for the special route
                 console.log(`You clicked on Route ${route}!`)
                 const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
-                // polyline.setText(`Route ${route}`, { repeat: true, offset: 10, attributes: { fill: 'red' } });
-                console.log(polyline);
-                marker3 = L.marker(lastCoordinate).bindTooltip("lastCoords", { permanent: true, opacity: 0.7 })
-          .openTooltip().addTo(map);
-          legIndex += 1;
+                legIndex++;
+                return (legIndex, fromPlace);
               } 
-            });
+        }
 
+        function createRouteButtons(routeNumbersSet, legIndex) {
+              // Iterate over the Set and create a button for each route
+              routeNumbersSet.forEach(route => {
+            const button = document.createElement('button');
+            button.textContent = `Route ${route}`;
+            button.classList.add(`route-button-${legIndex}`);
+            button.addEventListener('click', () => {
+              const route = button.textContent.split(" ")[1];
+              localStorage.setItem("routeClicked", route);
+            }); 
             buttonContainer = document.getElementById(`buttonContainer-${legIndex}`);
             buttonContainer.appendChild(button);
-});
-          } catch (error) {
-            console.error("Error fetching nearby routes:", error);
-            document.getElementById('route-output').textContent = "Error retrieving routes.";
+          });
           }
-        }
 
         trimetPlan = getTrimetPlan(fromPlace, toPlace);
 
@@ -182,8 +186,17 @@
         const trimetLegs = legs.filter(leg => 
           leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
         );
-  
-        asyncGetNearbyRoutes(fromPlace, trimetLegs[legIndex]);
+        clickedRoute = "None";
+        const legIndex = 0;
+        while (legIndex < trimetLegs.length) {
+          console.log(legIndex);
+          asyncGetNearbyRoutes(fromPlace);
+          routeNumbersSet = localStorage.getItem("routeNumbersSet");
+          createRouteButtons(routeNumbersSet, legIndex);
+          clickedRoute = localStorage.getItem("routeClicked");
+          legIndex, fromPlace = winningRouteFunction(trimetLegs, legIndex);
+          console.log(legIndex);
+        }
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
