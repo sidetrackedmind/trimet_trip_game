@@ -19,7 +19,7 @@ function getNearbyRoutes(fromPlace) {
   raw_response.resultSet.location.forEach(loc => {
     loc.route.forEach(route => {
       routeNumbers.add(route.route);
-      console.log(route.route);
+      // console.log(route.route);
     });
   });
   return routeNumbers;

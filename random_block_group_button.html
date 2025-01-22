@@ -64,6 +64,8 @@
           // Get the number of features
           var numFeatures = data.features.length;
 
+          localStorage.removeItem("routeClicked")
+
           // Generate two unique random indices
           var index1 = Math.floor(Math.random() * numFeatures);
           var index2 = Math.floor(Math.random() * numFeatures);
@@ -125,43 +127,10 @@
         // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
         // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
 
-        // sourced from gettrimettripplan.js
-        async function asyncgetTrimetPlan(fromPlace, toPlace) {
-          try {
-            const trimetPlan = await getTrimetPlan(fromPlace, toPlace);
-            return trimetPlan;
-          } catch (error) {
-            console.error("Error fetching TriMet Plan", error);
-          }
-        }
-
-        async function asyncGetNearbyRoutes(fromPlace) {
-          try {
-            console.log("Fetching nearby routes...");
-            const routeNumbers = await getNearbyRoutes(fromPlace);
-            console.log(routeNumbers);
-            routeNumbers.then(routeNumbersSet => {
-              console.log(routeNumbersSet);
-              localStorage.setItem("routeNumbersSet", routeNumbersSet);
-            });
-            
-          } catch (error) {
-            console.error("Error fetching nearby routes:", error);
-          }
-        }
 
         function winningRouteFunction(trimetLegs, legIndex, clickedRoute) {
           // 
-          winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
-          trimetLeg = trimetLegs[legIndex];
-          const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
-          if (`${clickedRoute}` === `${winningRoute}`) { 
-                // Perform the action for the special route
-                console.log(`You clicked on Route ${route}!`)
-                const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
-                legIndex++;
-                return (legIndex, fromPlace);
-              } 
+          
         }
 
         function createRouteButtons(routeNumbersSet, legIndex) {
@@ -178,8 +147,8 @@
             buttonContainer.appendChild(button);
           });
           }
-
-        trimetPlan = getTrimetPlan(fromPlace, toPlace);
+        // sourced from gettrimettripplan.js
+        const trimetPlan = getTrimetPlan(fromPlace, toPlace);
 
         const itinerary = trimetPlan.plan.itineraries[0];
         const legs = itinerary.legs;
@@ -188,14 +157,35 @@
         );
         clickedRoute = "None";
         const legIndex = 0;
+        let called_fromPlace = "None";
         while (legIndex < trimetLegs.length) {
           console.log(legIndex);
-          asyncGetNearbyRoutes(fromPlace);
-          routeNumbersSet = localStorage.getItem("routeNumbersSet");
-          createRouteButtons(routeNumbersSet, legIndex);
+
+          winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
+          trimetLeg = trimetLegs[legIndex];
+          
+          // sourced from getnearbyroutes.js
+          if (called_fromPlace != fromPlace) {
+            const routeNumbers = getNearbyRoutes(fromPlace);
+            called_fromPlace = fromPlace;
+            createRouteButtons(routeNumbers, legIndex);
+            console.log(`called_fromPlace is ${called_fromPlace}`);
+            console.log(`fromPlace is ${fromPlace}`);
+          }
+
           clickedRoute = localStorage.getItem("routeClicked");
-          legIndex, fromPlace = winningRouteFunction(trimetLegs, legIndex);
-          console.log(legIndex);
+          
+          const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
+          if (`${clickedRoute}` === `${winningRoute}`) { 
+                // Perform the action for the special route
+                console.log(`You clicked on Route ${route}!`)
+                const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
+                // last coordinate of decoded route line
+                const fromPlace = decodedCoordinates[decodedCoordinates.length - 1];
+                legIndex++;
+                console.log(`legIndex is now ${legIndex}`)
+                console.log(`fromPlace is now ${fromPlace}`)
+              } 
         }
 
           // Zoom to fit the selected features
