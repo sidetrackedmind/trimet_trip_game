@@ -57,10 +57,12 @@
         var geojsonLayer = L.geoJson(data).addTo(map);
 
         // Initialize markers as global variables
-        let marker1, marker2, marker3
+        let marker1, marker2, marker3;
 
         // Function to generate random pair of indices
         function generateRandomPair() {
+
+          localStorage.clear(); // Clear local storage
           // Get the number of features
           var numFeatures = data.features.length;
 
@@ -127,66 +129,66 @@
         // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
         // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
 
-
-        function winningRouteFunction(trimetLegs, legIndex, clickedRoute) {
-          // 
-          
+        function showPolyline(legIndex) {
+          polylines[legIndex].setStyle({ opacity: 1 }); // Show the polyline
         }
 
         function createRouteButtons(routeNumbersSet, legIndex) {
               // Iterate over the Set and create a button for each route
               routeNumbersSet.forEach(route => {
+                // console.log(`creating button for route ${route} in legIndex ${legIndex}`);
             const button = document.createElement('button');
             button.textContent = `Route ${route}`;
             button.classList.add(`route-button-${legIndex}`);
             button.addEventListener('click', () => {
-              const route = button.textContent.split(" ")[1];
-              localStorage.setItem("routeClicked", route);
+              console.log(`You clicked on a button`);
+              const clickedRoute = button.textContent.split(" ")[1];
+              const buttonclass = button.classList[0];
+              winningRoute = localStorage.getItem(`winningRoute-${legIndex}`);
+
+              if (`${clickedRoute}` === `${winningRoute}`) {
+              console.log("you're in the winning route if statement");
+            //show polyline
+              showPolyline(legIndex)
+            } 
+              
             }); 
             buttonContainer = document.getElementById(`buttonContainer-${legIndex}`);
             buttonContainer.appendChild(button);
           });
           }
+
         // sourced from gettrimettripplan.js
         const trimetPlan = getTrimetPlan(fromPlace, toPlace);
-
+        const polylines = []; 
         const itinerary = trimetPlan.plan.itineraries[0];
         const legs = itinerary.legs;
         const trimetLegs = legs.filter(leg => 
           leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
         );
-        clickedRoute = "None";
-        const legIndex = 0;
-        let called_fromPlace = "None";
-        while (legIndex < trimetLegs.length) {
+
+        for (let legIndex = 0; legIndex < trimetLegs.length; legIndex++) {
+          let winningRoute;
+          console.log("in for loop");
           console.log(legIndex);
-
+          console.log(`fromPlace ${fromPlace}`);
           winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
+          console.log(`winningRoute for legIndex ${legIndex} is ${winningRoute}`);
+          localStorage.setItem(`winningRoute-${legIndex}`, winningRoute);
           trimetLeg = trimetLegs[legIndex];
-          
-          // sourced from getnearbyroutes.js
-          if (called_fromPlace != fromPlace) {
-            const routeNumbers = getNearbyRoutes(fromPlace);
-            called_fromPlace = fromPlace;
-            createRouteButtons(routeNumbers, legIndex);
-            console.log(`called_fromPlace is ${called_fromPlace}`);
-            console.log(`fromPlace is ${fromPlace}`);
-          }
-
-          clickedRoute = localStorage.getItem("routeClicked");
-          
           const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
-          if (`${clickedRoute}` === `${winningRoute}`) { 
-                // Perform the action for the special route
-                console.log(`You clicked on Route ${route}!`)
-                const polyline = L.polyline(decodedCoordinates, { color: 'red' }).addTo(map); 
-                // last coordinate of decoded route line
-                const fromPlace = decodedCoordinates[decodedCoordinates.length - 1];
-                legIndex++;
-                console.log(`legIndex is now ${legIndex}`)
-                console.log(`fromPlace is now ${fromPlace}`)
-              } 
+          const polyline = L.polyline(decodedCoordinates, { color: 'red', opacity: 0}).addTo(map); // Add the polyline to the map
+          polyline.index = legIndex; // Add the index to the polyline
+          polylines.push(polyline); // Add the polyline to the polylines array
+          const lastCoordinate = decodedCoordinates[decodedCoordinates.length - 1];
+          fromPlace = lastCoordinate;
+          console.log(`new FromPlace ${fromPlace}`);
+          const routeNumbers = getNearbyRoutes(fromPlace);
+          console.log(routeNumbers);
+          console.log(`creating route buttons for legIndex ${legIndex}`);
+          createRouteButtons(routeNumbers, legIndex);
         }
+        
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
