@@ -32,6 +32,7 @@
 <body>
   <button id="generateButton">Generate Random Pair</button>
   <div id="map" style="width: 100%; height: 500px;"></div>
+  <div id="winningMessage" style="text-align: center; margin-bottom: 25px;"></div>
   <div id="buttonContainer-0" style="text-align: center; margin-bottom: 25px;"></div>
   <div id="buttonContainer-1" style="text-align: center; margin-bottom: 25px;"></div>
   <div id="buttonContainer-2" style="text-align: center; margin-bottom: 25px;"></div>
@@ -45,8 +46,6 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-
-    
 
 
     // Load GeoJSON data from AWS S3
@@ -149,6 +148,8 @@
         }
 
         function createRouteButtons(routeNumbersSet, legIndex) {
+          numtrimetLegs = localStorage.getItem("numtrimetLegs");
+          console.log(`numtrimetLegs ${numtrimetLegs}`);
               // Iterate over the Set and create a button for each route
               routeNumbersSet.forEach(route => {
                 // console.log(`creating button for route ${route} in legIndex ${legIndex}`);
@@ -165,7 +166,15 @@
               console.log("you're in the winning route if statement");
             //show polyline
               showPolyline(legIndex)
+              button.style.backgroundColor = 'lightgreen';
+              if (numtrimetLegs-1 === legIndex) {
+                const winningMessage = document.getElementById("winningMessage");
+                winningMessage.textContent = "You Win!";
+              }
             } 
+            else {
+              button.style.backgroundColor = 'gray';
+            }
               
             }); 
             buttonContainer = document.getElementById(`buttonContainer-${legIndex}`);
@@ -174,12 +183,15 @@
           }
 
         // sourced from gettrimettripplan.js
+        // check if trimetPlan is undefined if it's undefined then restart the generateRandomPair function
         const trimetPlan = getTrimetPlan(fromPlace, toPlace);
         const itinerary = trimetPlan.plan.itineraries[0];
         const legs = itinerary.legs;
         const trimetLegs = legs.filter(leg => 
           leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
         );
+
+        localStorage.setItem("numtrimetLegs", trimetLegs.length);
 
         for (let legIndex = 0; legIndex < trimetLegs.length; legIndex++) {
           let winningRoute;
