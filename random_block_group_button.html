@@ -146,7 +146,7 @@
         function showPolyline(legIndex) {
           polylines[legIndex].setStyle({ opacity: 1 }); // Show the polyline
         }
-
+        var winningRoute_legs = [];
         function createRouteButtons(routeNumbersSet, legIndex) {
           numtrimetLegs = localStorage.getItem("numtrimetLegs");
           console.log(`numtrimetLegs ${numtrimetLegs}`);
@@ -156,18 +156,40 @@
             const button = document.createElement('button');
             button.textContent = `Route ${route}`;
             button.classList.add(`route-button-${legIndex}`);
+            if (legIndex > 0) {
+              button.style.display = 'none';
+            }
             button.addEventListener('click', () => {
               console.log(`You clicked on a button`);
               const clickedRoute = button.textContent.split(" ")[1];
               const buttonclass = button.classList[0];
               winningRoute = localStorage.getItem(`winningRoute-${legIndex}`);
 
-              if (`${clickedRoute}` === `${winningRoute}`) {
+              if (`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex)) {
+                winningRoute_legs.push(legIndex);
+                const nextButtonContainer = document.getElementById(`buttonContainer-${legIndex+1}`);
+                console.log(`nextButtonContainer ${nextButtonContainer}`);
+                console.log(`buttonContainer-${legIndex+1}`);
+                if (nextButtonContainer) {
+                  nextButtonContainer.style.display = 'block';
+                }
+                const nextButtons = document.getElementsByClassName(`route-button-${legIndex+1}`);
+                if (nextButtons) {
+                  for (let i = 0; i < nextButtons.length; i++) {
+                    nextButtons[i].style.display = 'inline';
+                  }
+                }
+                numCorrectGuesses = localStorage.getItem("numCorrectGuesses");
+                console.log(`numCorrectGuesses before adding ${numCorrectGuesses}`);
+                numCorrectGuesses++;
+                localStorage.setItem("numCorrectGuesses", numCorrectGuesses);
+                console.log(`numCorrectGuesses after adding ${numCorrectGuesses}`);
               console.log("you're in the winning route if statement");
             //show polyline
               showPolyline(legIndex)
               button.style.backgroundColor = 'lightgreen';
-              if (numtrimetLegs-1 === legIndex) {
+              console.log(`numCorrectGuesses ${numCorrectGuesses} and numtrimetLegs ${numtrimetLegs}`);
+              if (Number(numtrimetLegs) === Number(numCorrectGuesses)) {
                 const winningMessage = document.getElementById("winningMessage");
                 winningMessage.textContent = "You Win!";
               }
@@ -190,7 +212,9 @@
         const trimetLegs = legs.filter(leg => 
           leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
         );
-
+        const winningMessage = document.getElementById("winningMessage");
+                winningMessage.textContent = "Trip Plan Generated with " + trimetLegs.length + " legs";
+        localStorage.setItem("numCorrectGuesses",0);
         localStorage.setItem("numtrimetLegs", trimetLegs.length);
 
         for (let legIndex = 0; legIndex < trimetLegs.length; legIndex++) {
