@@ -479,7 +479,6 @@ console.log(route_color_dict);
 
 function processGeoJSONData(data, desired_value) {
   // Filter the data based on a property (e.g., 'property_name')
-  
   const filteredData = data.features.filter(feature => {
     return Number(feature.properties.route_id) === desired_value;
   });
@@ -672,11 +671,7 @@ for (const [it_key, it_value] of Object.entries(itinerary_alt_dict)) {
               itin_div.appendChild(win_tooltip);
           }
           else {}
-<<<<<<< HEAD
-          selected_good_route_ids.push(route_id);
-=======
 	
->>>>>>> 815477635c1b3d7800425f42653029e85265125f
         }
         else {}
 
