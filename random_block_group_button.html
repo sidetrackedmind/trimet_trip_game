@@ -89,7 +89,7 @@
           geojsonLayer.resetStyle(); 
 
           // Style the selected features
-          function highlightFeature(feature) {
+          function highlightBlockFeature(feature) {
             var selectedFeature = 
               feature === data.features[index1] || 
               feature === data.features[index2]; 
@@ -106,7 +106,7 @@
             };
           }
 
-          geojsonLayer.setStyle(highlightFeature);
+          geojsonLayer.setStyle(highlightBlockFeature);
 
           // Remove old markers from the map
           if (marker1) {
@@ -143,11 +143,30 @@
         // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
         // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
 
+        function highlightPolyline(e) {
+          const layer = e.target;
+          layer.setStyle({ opacity: 1.0, color: 'blue', weight: 5 });
+          // show route number property in a tooltip
+          layer.bindTooltip(`Route ${layer.routeNumber}`, { permanent: true, opacity: 0.7 }).openTooltip();
+        }
+        function resetPolyline(e) {
+          const layer = e.target;
+          layer.setStyle({ opacity: 1.0, color: 'red', weight: 3 });
+          layer.unbindTooltip();
+        }
+
         function showPolyline(legIndex) {
-          polylines[legIndex].setStyle({ opacity: 1 }); // Show the polyline
+          polyline_to_show = polylines[legIndex];
+          console.log(polyline_to_show);
+          polyline_to_show.setStyle({ opacity: 1.0, color: 'red', weight:3 }); // Show the polyline
+          polyline_to_show.on({
+            mouseover: highlightPolyline, // Add the mouseover event
+            mouseout: resetPolyline // Add the mouseout event
+          });
         }
         var winningRoute_legs = [];
         function createRouteButtons(routeNumbersSet, legIndex) {
+          let badGuessList = [];
           numtrimetLegs = localStorage.getItem("numtrimetLegs");
           console.log(`numtrimetLegs ${numtrimetLegs}`);
               // Iterate over the Set and create a button for each route
@@ -164,9 +183,34 @@
               const clickedRoute = button.textContent.split(" ")[1];
               const buttonclass = button.classList[0];
               winningRoute = localStorage.getItem(`winningRoute-${legIndex}`);
+              badGuessList = JSON.parse(localStorage.getItem('badGuessList'))
 
+              console.log(`badGuessList ${badGuessList}`);
               if (`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex)) {
-                winningRoute_legs.push(legIndex);
+                button.style.backgroundColor = 'lightgreen';
+              }
+              else if (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex)) {
+                console.log("you're in the badGuessList.length > 1 if statement");
+                button.style.backgroundColor = 'gray';
+                const allButtons = document.getElementsByClassName(`route-button-${legIndex}`);
+                if (allButtons) {
+                  for (let i = 0; i < allButtons.length; i++) {
+                    // looking for the winning route button
+                    console.log(`allButtons[i].textContent.split(" ")[1] ${allButtons[i].textContent.split(" ")[1]}`);
+                    if (allButtons[i].textContent.split(" ")[1] === winningRoute) {
+                      allButtons[i].style.backgroundColor = 'lightgreen';
+                      break;
+                    }
+                  }
+                }
+
+              }
+            if ((`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex))
+            || (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex))
+            ) {
+              winningRoute_legs.push(legIndex);
+                let badGuessList = [];
+                localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
                 const nextButtonContainer = document.getElementById(`buttonContainer-${legIndex+1}`);
                 console.log(`nextButtonContainer ${nextButtonContainer}`);
                 console.log(`buttonContainer-${legIndex+1}`);
@@ -180,21 +224,21 @@
                   }
                 }
                 numCorrectGuesses = localStorage.getItem("numCorrectGuesses");
-                console.log(`numCorrectGuesses before adding ${numCorrectGuesses}`);
                 numCorrectGuesses++;
                 localStorage.setItem("numCorrectGuesses", numCorrectGuesses);
-                console.log(`numCorrectGuesses after adding ${numCorrectGuesses}`);
-              console.log("you're in the winning route if statement");
-            //show polyline
-              showPolyline(legIndex)
-              button.style.backgroundColor = 'lightgreen';
+              //show polyline
+                showPolyline(legIndex);
               console.log(`numCorrectGuesses ${numCorrectGuesses} and numtrimetLegs ${numtrimetLegs}`);
               if (Number(numtrimetLegs) === Number(numCorrectGuesses)) {
                 const winningMessage = document.getElementById("winningMessage");
                 winningMessage.textContent = "You Win!";
               }
             } 
-            else {
+            else if (!badGuessList.includes(clickedRoute)) {
+              badGuessList.push(clickedRoute);
+              localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
+              console.log("you're in the losing route if statement");
+              console.log(`badGuessList ${badGuessList}`);
               button.style.backgroundColor = 'gray';
             }
               
@@ -219,6 +263,8 @@
 
         for (let legIndex = 0; legIndex < trimetLegs.length; legIndex++) {
           let winningRoute;
+          let badGuessList = [];
+          localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
           console.log("in for loop");
           console.log(legIndex);
           console.log(`fromPlace ${fromPlace}`);
@@ -227,7 +273,12 @@
           localStorage.setItem(`winningRoute-${legIndex}`, winningRoute);
           trimetLeg = trimetLegs[legIndex];
           const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
-          const polyline = L.polyline(decodedCoordinates, { color: 'red', opacity: 0}).addTo(map); // Add the polyline to the map
+          const polyline = L.polyline(decodedCoordinates);
+          //add route number as a property to the polyline
+          polyline.routeNumber = winningRoute;
+          polyline.routeColor = trimetLeg.routeColor;
+          polyline.setStyle({ color: trimetLeg.routeColor, opacity: 0}); // Set the style of the polyline
+          polyline.addTo(map); // Add the polyline to the map
           polyline.index = legIndex; // Add the index to the polyline
           polylines.push(polyline); // Add the polyline to the polylines array
           const lastCoordinate = decodedCoordinates[decodedCoordinates.length - 1];

@@ -1,9 +1,9 @@
 // Description: This script is used to get the trip plan from Trimet API.
 
-function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 805, walkSpeed = 1.34, numItineraries = 1) {
+function getTrimetPlan(fromPlace, toPlace, maxWalkDistance = 1200, walkSpeed = 1.7, numItineraries = 1) {
     const baseUrl = "https://maps.trimet.org/otp_mod/plan";
   
-    // 805 meters = 1/2 mile. 1.34 m/s = 3 mph
+    // 805 meters = 1/2 mile. 1.7 m/s 
   
     const now = new Date();
   
