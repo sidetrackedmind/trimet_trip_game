@@ -251,6 +251,12 @@
         // sourced from gettrimettripplan.js
         // check if trimetPlan is undefined if it's undefined then restart the generateRandomPair function
         const trimetPlan = getTrimetPlan(fromPlace, toPlace);
+        // check if trimetPlan is undefined 
+        if (trimetPlan.plan === undefined) {
+          const winningMessage = document.getElementById("winningMessage");
+          winningMessage.textContent = "No Trip Plan Available - hit Generate Random Pair again";
+        }
+        else {
         const itinerary = trimetPlan.plan.itineraries[0];
         const legs = itinerary.legs;
         const trimetLegs = legs.filter(leg => 
@@ -289,7 +295,7 @@
           console.log(`creating route buttons for legIndex ${legIndex}`);
           createRouteButtons(routeNumbers, legIndex);
         }
-        
+      }
 
           // Zoom to fit the selected features
           var bounds = L.featureGroup([
