@@ -342,6 +342,16 @@ fetch("https://raw.githubusercontent.com/sidetrackedmind/trimet_trip_game/main/t
         var query_time = data['query_time'];
         query_time_div.textContent = "Trip query time: "+query_time
         header_id_element.appendChild(query_time_div);
+        // create another div element to reference a beta game: https://d1tu6vkegvnwyd.cloudfront.net/random_block_group_button.html
+        var beta_game_div = document.createElement("div");
+        beta_game_div.textContent = "Try New Gameplay [Beta]: ";
+        // adjust textContent font size
+        beta_game_div.style.fontSize = "12px";
+        var beta_game_link = document.createElement("a");
+        beta_game_link.href = "https://d1tu6vkegvnwyd.cloudfront.net/random_block_group_button.html";
+        beta_game_link.textContent = "link";
+        beta_game_div.appendChild(beta_game_link);
+        header_id_element.appendChild(beta_game_div);
         }
     );
 
