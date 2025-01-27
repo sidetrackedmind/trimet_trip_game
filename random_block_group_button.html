@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Random Point Selector</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+     integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI="
+     crossorigin=""/>
+ <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM="
+     crossorigin=""></script>
+<script src="gettrimettripplan.js"></script>
+<script src="getnearbyroutes.js"></script>
+<script src="decodePolyine.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-textpath@1.2.0/leaflet.textpath.min.js"></script>
+  <script src='https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js'></script>
+  
+
+  <style>
+.route-button {
+  margin: 5px;
+  padding: 10px 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+  </style>
+</head>
+<body>
+  <button id="generateButton">Generate Random Pair</button>
+  <div id="map" style="width: 100%; height: 500px;"></div>
+  <div id="winningMessage" style="text-align: center; margin-bottom: 25px;"></div>
+  <div id="buttonContainer-0" style="text-align: center; margin-bottom: 25px;"></div>
+  <div id="buttonContainer-1" style="text-align: center; margin-bottom: 25px;"></div>
+  <div id="buttonContainer-2" style="text-align: center; margin-bottom: 25px;"></div>
+  <div id="buttonContainer-3" style="text-align: center; margin-bottom: 25px;"></div>
+
+  <script>
+    // Initialize the map
+    var map = L.map('map').setView([45.52, -122.68], 12); 
+
+        // Add a basemap (e.g., OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+
+    // Load GeoJSON data from AWS S3
+    fetch('https://meysohn-sandbox.s3.us-east-1.amazonaws.com/trimet_trip_planner/tm_route_buffer_blockgroup.geojson')
+      .then(response => response.json())
+      .then(data => {
+        // Create a GeoJSON layer
+        var geojsonLayer = L.geoJson(data).addTo(map);
+
+        // Initialize markers as global variables
+        let marker1, marker2, marker3;
+        const polylines = []; 
+
+        // Function to generate random pair of indices
+        function generateRandomPair() {
+
+          // Remove existing polylines from the map and make sure the polyline array is empty
+          polylines.forEach(polyline => map.removeLayer(polyline));
+          polylines.length = 0;
+
+          // remove all buttons
+          for (let i = 0; i < 4; i++) {
+            const buttonContainer = document.getElementById(`buttonContainer-${i}`);
+            buttonContainer.innerHTML = "";
+          }
+
+          localStorage.clear(); // Clear local storage
+          // Get the number of features
+          var numFeatures = data.features.length;
+
+          localStorage.removeItem("routeClicked")
+
+          // Generate two unique random indices
+          var index1 = Math.floor(Math.random() * numFeatures);
+          var index2 = Math.floor(Math.random() * numFeatures);
+          while (index2 === index1) {
+            index2 = Math.floor(Math.random() * numFeatures);
+          }
+
+          // Clear existing styles
+          geojsonLayer.resetStyle(); 
+
+          // Style the selected features
+          function highlightBlockFeature(feature) {
+            var selectedFeature = 
+              feature === data.features[index1] || 
+              feature === data.features[index2]; 
+            return selectedFeature ? {
+              weight: 5,
+              color: '#666',
+              dashArray: '',
+              fillOpacity: 0.7
+            } : {
+              weight: 1,
+              color: '#666',
+              dashArray: '',
+              fillOpacity: 0.1
+            };
+          }
+
+          geojsonLayer.setStyle(highlightBlockFeature);
+
+          // Remove old markers from the map
+          if (marker1) {
+            map.removeLayer(marker1);
+          }
+          if (marker2) {
+            map.removeLayer(marker2);
+          }
+          if (marker3) {
+            map.removeLayer(marker2);
+          }
+
+          if (marker3) {
+            map.removeLayer(marker2);
+          }
+
+          // Use turf.js to get a random point within each selected feature
+          var point1 = turf.pointOnFeature(data.features[index1]);
+          var point2 = turf.pointOnFeature(data.features[index2]);
+          // console.log(point1);
+          console.log(point1.geometry.coordinates);
+          
+          // Create markers at the random points
+          marker1 = L.marker(point1.geometry.coordinates.reverse()).bindTooltip("Origin", { permanent: true, opacity: 0.7 })
+          .openTooltip().addTo(map);
+          
+          marker2 = L.marker(point2.geometry.coordinates.reverse()).bindTooltip("Destination", { permanent: true, opacity: 0.7 })
+          .openTooltip().addTo(map);
+
+          let fromPlace = `${point1.geometry.coordinates[0]}, ${point1.geometry.coordinates[1]}`;
+          let toPlace = `${point2.geometry.coordinates[0]}, ${point2.geometry.coordinates[1]}`;
+
+          // Example usage
+        // const fromPlace = "45.516194, -122.675840"; // Downtown Portland, OR
+        // const toPlace = "45.562604, -122.682919"; // Killingsworth & Interstate MAX Station
+
+        function highlightPolyline(e) {
+          const layer = e.target;
+          layer.setStyle({ opacity: 1.0, color: 'blue', weight: 5 });
+          // show route number property in a tooltip
+          layer.bindTooltip(`Route ${layer.routeNumber}`, { permanent: true, opacity: 0.7 }).openTooltip();
+        }
+        function resetPolyline(e) {
+          const layer = e.target;
+          layer.setStyle({ opacity: 1.0, color: 'red', weight: 3 });
+          layer.unbindTooltip();
+        }
+
+        function showPolyline(legIndex) {
+          polyline_to_show = polylines[legIndex];
+          console.log(polyline_to_show);
+          polyline_to_show.setStyle({ opacity: 1.0, color: 'red', weight:3 }); // Show the polyline
+          polyline_to_show.on({
+            mouseover: highlightPolyline, // Add the mouseover event
+            mouseout: resetPolyline // Add the mouseout event
+          });
+        }
+        var winningRoute_legs = [];
+        function createRouteButtons(routeNumbersSet, legIndex) {
+          let badGuessList = [];
+          numtrimetLegs = localStorage.getItem("numtrimetLegs");
+          console.log(`numtrimetLegs ${numtrimetLegs}`);
+              // Iterate over the Set and create a button for each route
+              routeNumbersSet.forEach(route => {
+                // console.log(`creating button for route ${route} in legIndex ${legIndex}`);
+            const button = document.createElement('button');
+            button.textContent = `Route ${route}`;
+            button.classList.add(`route-button-${legIndex}`);
+            if (legIndex > 0) {
+              button.style.display = 'none';
+            }
+            button.addEventListener('click', () => {
+              console.log(`You clicked on a button`);
+              const clickedRoute = button.textContent.split(" ")[1];
+              const buttonclass = button.classList[0];
+              winningRoute = localStorage.getItem(`winningRoute-${legIndex}`);
+              badGuessList = JSON.parse(localStorage.getItem('badGuessList'))
+
+              console.log(`badGuessList ${badGuessList}`);
+              if (`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex)) {
+                button.style.backgroundColor = 'lightgreen';
+              }
+              else if (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex)) {
+                console.log("you're in the badGuessList.length > 1 if statement");
+                button.style.backgroundColor = 'gray';
+                const allButtons = document.getElementsByClassName(`route-button-${legIndex}`);
+                if (allButtons) {
+                  for (let i = 0; i < allButtons.length; i++) {
+                    // looking for the winning route button
+                    console.log(`allButtons[i].textContent.split(" ")[1] ${allButtons[i].textContent.split(" ")[1]}`);
+                    if (allButtons[i].textContent.split(" ")[1] === winningRoute) {
+                      allButtons[i].style.backgroundColor = 'lightgreen';
+                      break;
+                    }
+                  }
+                }
+
+              }
+            if ((`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex))
+            || (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex))
+            ) {
+              winningRoute_legs.push(legIndex);
+                let badGuessList = [];
+                localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
+                const nextButtonContainer = document.getElementById(`buttonContainer-${legIndex+1}`);
+                console.log(`nextButtonContainer ${nextButtonContainer}`);
+                console.log(`buttonContainer-${legIndex+1}`);
+                if (nextButtonContainer) {
+                  nextButtonContainer.style.display = 'block';
+                }
+                const nextButtons = document.getElementsByClassName(`route-button-${legIndex+1}`);
+                if (nextButtons) {
+                  for (let i = 0; i < nextButtons.length; i++) {
+                    nextButtons[i].style.display = 'inline';
+                  }
+                }
+                numCorrectGuesses = localStorage.getItem("numCorrectGuesses");
+                numCorrectGuesses++;
+                localStorage.setItem("numCorrectGuesses", numCorrectGuesses);
+              //show polyline
+                showPolyline(legIndex);
+              console.log(`numCorrectGuesses ${numCorrectGuesses} and numtrimetLegs ${numtrimetLegs}`);
+              if (Number(numtrimetLegs) === Number(numCorrectGuesses)) {
+                const winningMessage = document.getElementById("winningMessage");
+                winningMessage.textContent = "You Win!";
+              }
+            } 
+            else if (!badGuessList.includes(clickedRoute)) {
+              badGuessList.push(clickedRoute);
+              localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
+              console.log("you're in the losing route if statement");
+              console.log(`badGuessList ${badGuessList}`);
+              button.style.backgroundColor = 'gray';
+            }
+              
+            }); 
+            buttonContainer = document.getElementById(`buttonContainer-${legIndex}`);
+            buttonContainer.appendChild(button);
+          });
+          }
+
+        // sourced from gettrimettripplan.js
+        // check if trimetPlan is undefined if it's undefined then restart the generateRandomPair function
+        const trimetPlan = getTrimetPlan(fromPlace, toPlace);
+        // check if trimetPlan is undefined 
+        if (trimetPlan.plan === undefined) {
+          const winningMessage = document.getElementById("winningMessage");
+          winningMessage.textContent = "No Trip Plan Available - hit Generate Random Pair again";
+        }
+        else {
+        const itinerary = trimetPlan.plan.itineraries[0];
+        const legs = itinerary.legs;
+        const trimetLegs = legs.filter(leg => 
+          leg.mode === 'BUS' || leg.mode === 'TRAM' || leg.mode === 'RAIL' || leg.mode === 'GONDOLA'
+        );
+        const winningMessage = document.getElementById("winningMessage");
+                winningMessage.textContent = "Trip Plan Generated with " + trimetLegs.length + " legs";
+        localStorage.setItem("numCorrectGuesses",0);
+        localStorage.setItem("numtrimetLegs", trimetLegs.length);
+
+        for (let legIndex = 0; legIndex < trimetLegs.length; legIndex++) {
+          let winningRoute;
+          let badGuessList = [];
+          localStorage.setItem("badGuessList", JSON.stringify(badGuessList));
+          console.log("in for loop");
+          console.log(legIndex);
+          console.log(`fromPlace ${fromPlace}`);
+          winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
+          console.log(`winningRoute for legIndex ${legIndex} is ${winningRoute}`);
+          localStorage.setItem(`winningRoute-${legIndex}`, winningRoute);
+          trimetLeg = trimetLegs[legIndex];
+          const decodedCoordinates = decodePolyline(trimetLeg.legGeometry.points);
+          const polyline = L.polyline(decodedCoordinates);
+          //add route number as a property to the polyline
+          polyline.routeNumber = winningRoute;
+          polyline.routeColor = trimetLeg.routeColor;
+          polyline.setStyle({ color: trimetLeg.routeColor, opacity: 0}); // Set the style of the polyline
+          polyline.addTo(map); // Add the polyline to the map
+          polyline.index = legIndex; // Add the index to the polyline
+          polylines.push(polyline); // Add the polyline to the polylines array
+          const lastCoordinate = decodedCoordinates[decodedCoordinates.length - 1];
+          fromPlace = lastCoordinate;
+          console.log(`new FromPlace ${fromPlace}`);
+          const routeNumbers = getNearbyRoutes(fromPlace);
+          console.log(routeNumbers);
+          console.log(`creating route buttons for legIndex ${legIndex}`);
+          createRouteButtons(routeNumbers, legIndex);
+        }
+      }
+
+          // Zoom to fit the selected features
+          var bounds = L.featureGroup([
+            L.geoJson(data.features[index1]),
+            L.geoJson(data.features[index2])
+          ]).getBounds();
+          map.fitBounds(bounds);
+
+        }
+
+        // Add event listener to the button
+        document.getElementById('generateButton').addEventListener('click', generateRandomPair);
+      });
+  </script>
+</body>
+</html>

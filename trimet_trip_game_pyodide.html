@@ -1,0 +1,50 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <div id="loadingdiv" style="text-align:center;">
+            <p style="font-size:18px;">Loading Pyodide... 
+              </p>
+      </div>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/pyodide/v0.27.1/full/pyodide.js"></script>
+    <script type="text/javascript">
+      async function main() {
+        // Show loading div
+        document.getElementById("loadingdiv").style.display = "block";
+
+        let pyodide = await loadPyodide();
+        await pyodide.loadPackage("micropip");
+        const micropip = pyodide.pyimport("micropip");
+        await micropip.install("pytz");
+        await micropip.install("requests");
+
+        // Hide loading div after libraries are loaded
+        document.getElementById("loadingdiv").style.display = "none";
+
+        await pyodide.runPython(`
+        import pytz
+        import requests
+        import datetime
+        fromPlace = "45.516194, -122.675840" #Downtown Portland, OR
+        toPlace = "45.562604, -122.682919" #Killingsworth & Interstate MAX Station
+        base_url = "https://maps.trimet.org/otp_mod/plan"
+        now_datetime = datetime.datetime.now()
+        date = now_datetime.strftime("%Y-%m-%d")
+        time=now_datetime.strftime("%H:%M")
+        mode="WALK,BUS,TRAM,RAIL,GONDOLA"
+        maxWalkDistance=536 #this distance is in METERS! 536 meters = 1/3 mile. Ideally 0.25 mile for Bus and 1 mile for MAX but there's only one parameter
+        walkSpeed=1.34 #this speed is in METERS PER SECOND! 1.34 m/s = 3 mph
+        numItineraries=3
+        print("making request to Trimet API")
+        r = requests.get(url=base_url, params={'fromPlace':fromPlace, 'toPlace':toPlace, 'date':date, 'time':time
+                                        ,'mode':mode, 'maxWalkDistance':maxWalkDistance, 'walkSpeed':walkSpeed
+                                        ,'numItineraries':numItineraries})
+
+        print(r.json())
+      `);
+      }
+      main();
+    </script>
+  </body>
+</html>
