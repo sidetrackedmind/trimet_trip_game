@@ -3,14 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TriMet Trip Games</title>
+    <title>Transit Explorations</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Ensure the content is centered vertically on the viewport */
+            margin: 0; /* Remove default body margin */
+            text-align: center; /* Center inline content */
+        }
+        button {
+          padding: 10px 20px;
+          margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to TriMet Trip Games</h1>
+    <h1>TriMet Trip Games</h1>
 
     <button onclick="window.open('https://bus.wtf/trimet_trip_planner/trimet_trip_game.html', '_blank');">Game 1: TriMet Trip Game - Wordle-like</button>
     <br><br>
     <button onclick="window.open('https://bus.wtf/trimet_trip_planner/random_block_group_button.html', '_blank');">Game 2: TriMet Trip Game - Infinite Random OD Generator</button>
+    <br><br>
+    <h2>Archived - it can take a moment to load</h2>
+    <button onclick="window.open('https://busenv-1064718383083.us-central1.run.app', '_blank');">Wait Time Forcaster - King County Metro</button>
 
 </body>
 </html>
