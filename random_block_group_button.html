@@ -189,8 +189,8 @@
               if (`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex)) {
                 button.style.backgroundColor = 'lightgreen';
               }
-              else if (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex)) {
-                console.log("you're in the badGuessList.length > 1 if statement");
+              else if (badGuessList.length >= 1 && !winningRoute_legs.includes(legIndex)) {
+                console.log("you're in the badGuessList.length >= 1 if statement");
                 button.style.backgroundColor = 'gray';
                 const allButtons = document.getElementsByClassName(`route-button-${legIndex}`);
                 if (allButtons) {
@@ -206,7 +206,7 @@
 
               }
             if ((`${clickedRoute}` === `${winningRoute}` && !winningRoute_legs.includes(legIndex))
-            || (badGuessList.length > 1 && !winningRoute_legs.includes(legIndex))
+            || (badGuessList.length >= 1 && !winningRoute_legs.includes(legIndex))
             ) {
               winningRoute_legs.push(legIndex);
                 let badGuessList = [];
@@ -274,7 +274,7 @@
           console.log("in for loop");
           console.log(legIndex);
           console.log(`fromPlace ${fromPlace}`);
-          winningRoute = trimetLegs[legIndex].routeId.split(":")[1];
+          winningRoute = Number(trimetLegs[legIndex].routeId.split(":")[1]);
           console.log(`winningRoute for legIndex ${legIndex} is ${winningRoute}`);
           localStorage.setItem(`winningRoute-${legIndex}`, winningRoute);
           trimetLeg = trimetLegs[legIndex];
@@ -282,6 +282,7 @@
           const polyline = L.polyline(decodedCoordinates);
           //add route number as a property to the polyline
           polyline.routeNumber = winningRoute;
+
           polyline.routeColor = trimetLeg.routeColor;
           polyline.setStyle({ color: trimetLeg.routeColor, opacity: 0}); // Set the style of the polyline
           polyline.addTo(map); // Add the polyline to the map
@@ -291,9 +292,29 @@
           fromPlace = lastCoordinate;
           console.log(`new FromPlace ${fromPlace}`);
           const routeNumbers = getNearbyRoutes(fromPlace);
-          console.log(routeNumbers);
+          // Convert the Set to an Array
+          const routeNumbersArray = Array.from(routeNumbers);
+
+          // limit the number of routenumbersarray to 5 elements
+          if (routeNumbersArray.length > 5) {
+            routeNumbersArray.splice(5); // Limit to 4 elements
+          }
+
+          // Ensure the winning route is included in the routeNumbersArray
+          if (!routeNumbersArray.includes(winningRoute)) {
+            
+            routeNumbersArray.push(winningRoute);
+          }
+
+          // I want to limit the number of route numbers to 4, then make sure the winning route is included, then shuffle the array
+          // Shuffle the array using the Fisher-Yates algorithm
+          for (let i = routeNumbersArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [routeNumbersArray[i], routeNumbersArray[j]] = [routeNumbersArray[j], routeNumbersArray[i]]; // ES6 swap
+          }
+          console.log(routeNumbersArray);
           console.log(`creating route buttons for legIndex ${legIndex}`);
-          createRouteButtons(routeNumbers, legIndex);
+          createRouteButtons(routeNumbersArray, legIndex);
         }
       }
 
