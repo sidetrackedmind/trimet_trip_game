@@ -3,7 +3,7 @@
 "name": "origin_destination_points",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "point_type": "origin", "points_str": "45.602276, -122.676569" }, "geometry": { "type": "Point", "coordinates": [ -122.676569324699159, 45.60227646646279 ] } },
-{ "type": "Feature", "properties": { "point_type": "destination", "points_str": "45.473943, -122.717952" }, "geometry": { "type": "Point", "coordinates": [ -122.717951534400243, 45.473943300569061 ] } }
+{ "type": "Feature", "properties": { "point_type": "origin", "points_str": "45.53896, -122.605038" }, "geometry": { "type": "Point", "coordinates": [ -122.60503789593534, 45.53896044837299 ] } },
+{ "type": "Feature", "properties": { "point_type": "destination", "points_str": "45.425181, -122.49134" }, "geometry": { "type": "Point", "coordinates": [ -122.491339733718618, 45.42518063569986 ] } }
 ]
 }
