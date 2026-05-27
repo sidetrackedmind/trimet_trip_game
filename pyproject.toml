@@ -1,0 +1,15 @@
+[project]
+name = "trimet-trip-game"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "boto3>=1.42.97",
+    "geopandas>=1.0.1",
+    "ipykernel>=7.2.0",
+    "jupyter>=1.1.1",
+    "polyline>=2.0.4",
+    "requests>=2.32.5",
+    "seaborn>=0.13.2",
+]
