@@ -3,6 +3,6 @@
 "name": "origin_destination_centriod",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "id": "origin_dest_centroid" }, "geometry": { "type": "Point", "coordinates": [ -122.61430005970098, 45.496412799814706 ] } }
+{ "type": "Feature", "properties": { "id": "origin_dest_centroid" }, "geometry": { "type": "Point", "coordinates": [ -122.569666355002738, 45.481785008098122 ] } }
 ]
 }
