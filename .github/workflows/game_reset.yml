@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '10 0,14,19 * * *' # At 17:10,7:10,12:10 pacific, everyday
 
+concurrency:
+  group: game-reset
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,6 +40,9 @@ jobs:
           git add -A
           git diff-index --quiet HEAD || (git commit -a -m "updated logs" --allow-empty)
           
+      - name: sync with remote
+        run: git pull --rebase origin main
+
       - name: push changes
         uses: ad-m/github-push-action@v0.6.0
         with:
