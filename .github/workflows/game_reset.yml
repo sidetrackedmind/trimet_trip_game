@@ -11,6 +11,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
 
       - name: checkout repo content
